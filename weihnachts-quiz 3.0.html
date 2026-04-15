@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="page-title">Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&family=Playfair+Display:ital,wght@0,700;1,400&family=Nunito:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#061209;--bg-mid:#0c1f11;--gd:#0f3d1c;--gm:#1a5c2e;
+  --gold:#d4a843;--goldt:#f0c060;--red:#c0392b;--redd:#8b0000;
+  --cream:#f5edd8;--silver:#b0b0b0;
+}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--cream);transition:background .5s,color .5s}
+
+/* ── SNOW ── */
+#snow{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.sf{position:absolute;top:-30px;animation:fall linear infinite;pointer-events:none;user-select:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
+
+/* ── SCREENS ── */
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10}
+#setup-screen{background:radial-gradient(ellipse at 50% 30%,#0f3d1c 0%,var(--bg) 70%)}
+#quiz-screen{background:radial-gradient(ellipse at 50% 0%,#0f3d1c 0%,var(--bg) 65%);justify-content:flex-start;padding:0}
+#admin-screen{background:#060e06;justify-content:flex-start;align-items:flex-start;overflow-y:auto;padding:0}
+
+/* ── SETUP ── */
+.setup-card{background:linear-gradient(145deg,rgba(15,61,28,.95),rgba(6,18,9,.97));border:2px solid var(--gold);border-radius:22px;padding:44px 40px;max-width:480px;width:92%;text-align:center;box-shadow:0 0 60px rgba(212,168,67,.25),inset 0 1px 0 rgba(255,255,255,.07)}
+.setup-tree{font-size:2.8rem;margin-bottom:4px;animation:sway 3s ease-in-out infinite;display:block}
+@keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.setup-title{font-family:'Mountains of Christmas',cursive;font-size:2.4rem;color:var(--gold);text-shadow:0 0 30px rgba(212,168,67,.5);line-height:1.1}
+.setup-sub{color:var(--silver);font-size:.82rem;margin:6px 0 24px;letter-spacing:.5px}
+.setup-label{display:block;text-align:left;color:var(--goldt);font-size:.8rem;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.setup-input{width:100%;padding:11px 16px;background:rgba(255,255,255,.07);border:1px solid rgba(212,168,67,.35);border-radius:10px;color:var(--cream);font-size:.95rem;font-family:'Nunito',sans-serif;outline:none;transition:border-color .2s,background .2s;margin-bottom:10px}
+.setup-input:focus{border-color:var(--gold);background:rgba(255,255,255,.12)}
+.setup-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),#a0720a);color:var(--bg);border:none;border-radius:50px;font-size:.95rem;font-weight:900;font-family:'Nunito',sans-serif;cursor:pointer;margin-top:8px;transition:all .2s}
+.setup-btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(212,168,67,.4)}
+.team-name-inputs{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:280px;overflow-y:auto;padding-right:4px}
+
+/* ── QUIZ HEADER ── */
+.qhdr{text-align:center;padding:8px 16px 4px;flex-shrink:0;position:relative;z-index:2}
+.qhdr-stars{color:var(--gold);font-size:.72rem;letter-spacing:6px;opacity:.7}
+.qhdr-title{font-family:'Mountains of Christmas',cursive;font-size:1.9rem;color:var(--gold);text-shadow:0 0 25px rgba(212,168,67,.55);line-height:1.1}
+.admin-fab{position:fixed;top:10px;right:14px;background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.5);color:var(--gold);padding:5px 13px;border-radius:20px;cursor:pointer;font-size:.72rem;font-family:'Nunito',sans-serif;font-weight:700;z-index:100;transition:all .2s;letter-spacing:.5px}
+.admin-fab:hover{background:rgba(212,168,67,.25)}
+
+/* ── BOARD ── */
+.board-wrap{flex:1;overflow:auto;padding:4px 6px 6px;position:relative;z-index:2}
+.board-table{width:100%;border-collapse:separate;border-spacing:3px;table-layout:fixed}
+.cath{padding:6px 3px;text-align:center;border-radius:9px;font-size:.56rem;font-weight:900;letter-spacing:.25px;text-transform:uppercase;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.7);line-height:1.25;vertical-align:middle;height:56px;position:relative;overflow:hidden}
+.cath::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.14) 0%,transparent 50%);pointer-events:none}
+.ce{display:block;font-size:1.1rem;margin-bottom:1px}
+.pc{height:72px;text-align:center;vertical-align:middle;border-radius:9px;cursor:pointer;transition:transform .15s,box-shadow .15s,opacity .3s;position:relative;overflow:hidden}
+.pc::before{content:'';position:absolute;inset:0;background:linear-gradient(140deg,rgba(255,255,255,.13) 0%,transparent 55%);border-radius:9px;pointer-events:none}
+.pc:hover:not(.used){transform:scale(1.06);box-shadow:0 8px 28px rgba(0,0,0,.5),0 0 18px rgba(212,168,67,.35);z-index:1}
+.pc.used{opacity:.18;cursor:default;pointer-events:none}
+.pc .pv{font-family:'Mountains of Christmas',cursive;font-size:1.5rem;font-weight:700;color:var(--goldt);text-shadow:0 2px 10px rgba(0,0,0,.7);position:relative;z-index:1}
+
+/* ── SCORE BAR ── */
+.score-bar{background:linear-gradient(135deg,rgba(15,61,28,.9),rgba(6,18,9,.9));border-top:2px solid rgba(212,168,67,.5);padding:8px 16px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;flex-shrink:0;position:relative;z-index:2}
+.team-card{background:rgba(255,255,255,.05);border:1px solid rgba(212,168,67,.25);border-radius:12px;padding:6px 16px;text-align:center;min-width:110px;transition:all .4s}
+.team-card.hi{border-color:var(--gold);background:rgba(212,168,67,.12);box-shadow:0 0 20px rgba(212,168,67,.3)}
+.tn{font-size:.65rem;color:var(--silver);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px}
+.ts{font-family:'Mountains of Christmas',cursive;font-size:1.5rem;color:var(--gold);line-height:1}
+
+/* ── QUESTION MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(6px)}
+.qmodal{background:linear-gradient(155deg,#0f3d1c 0%,#061209 100%);border:2px solid var(--gold);border-radius:22px;width:100%;max-width:840px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.75),0 0 50px rgba(212,168,67,.18)}
+.mhdr{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid rgba(212,168,67,.25);flex-shrink:0}
+.mcat{font-size:.75rem;color:var(--gold);text-transform:uppercase;letter-spacing:2px;font-weight:700}
+.mpts{font-family:'Mountains of Christmas',cursive;font-size:1.8rem;color:var(--goldt)}
+.mbody{flex:1;overflow-y:auto;padding:24px 22px;display:flex;align-items:center;justify-content:center;text-align:center;min-height:160px}
+.qtxt{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--cream);line-height:1.65}
+.qimg,.qvid{max-width:100%;max-height:300px;border-radius:12px;display:block;margin:auto}
+.qytembed{width:100%;max-width:560px;border-radius:12px;border:none;aspect-ratio:16/9;display:block;margin:auto}
+.qaud-wrap{text-align:center;width:100%}
+.qaud{width:100%;max-width:480px;margin:0 auto;display:block}
+.pixel-host{overflow:hidden;border-radius:12px;display:flex;align-items:center;justify-content:center;max-width:100%;max-height:300px}
+.pixel-host img{image-rendering:pixelated;max-width:100%;max-height:300px}
+
+/* answer */
+.ans-sec{padding:14px 22px;border-top:1px solid rgba(212,168,67,.25);background:rgba(0,0,0,.2);flex-shrink:0}
+.ans-lbl{font-size:.68rem;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;font-weight:700}
+.ans-txt{font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--cream)}
+
+/* award */
+.award-sec{padding:12px 22px;border-top:1px solid rgba(212,168,67,.2);background:rgba(0,0,0,.15);flex-shrink:0}
+.award-lbl{font-size:.66rem;color:var(--silver);margin-bottom:7px;text-transform:uppercase;letter-spacing:.8px}
+.award-btns{display:flex;gap:8px;flex-wrap:wrap}
+.abt{padding:7px 14px;border-radius:20px;border:1px solid rgba(212,168,67,.4);background:rgba(212,168,67,.1);color:var(--goldt);cursor:pointer;font-size:.78rem;font-family:'Nunito',sans-serif;font-weight:700;transition:all .2s}
+.abt:hover:not(.awarded){background:rgba(212,168,67,.25);border-color:var(--gold);transform:translateY(-1px)}
+.abt.awarded{background:rgba(46,142,70,.4);border-color:#4caf50;color:#90ee90;cursor:default;pointer-events:none}
+
+/* footer */
+.mftr{padding:12px 22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid rgba(212,168,67,.2);flex-shrink:0}
+.btn{padding:9px 20px;border-radius:50px;border:none;cursor:pointer;font-size:.82rem;font-weight:800;font-family:'Nunito',sans-serif;transition:all .2s}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#a0720a);color:var(--bg)}
+.btn-gold:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,168,67,.4)}
+.btn-gold:disabled{opacity:.45;cursor:default}
+.btn-red{background:linear-gradient(135deg,var(--red),var(--redd));color:#fff}
+.btn-red:hover{transform:translateY(-2px)}
+.btn-out{background:transparent;border:1px solid rgba(212,168,67,.45);color:var(--gold)}
+.btn-out:hover{background:rgba(212,168,67,.1)}
+
+/* timer */
+.timer-wrap{margin-left:auto;display:flex;align-items:center;gap:6px}
+.tcircle{width:50px;height:50px;transform:rotate(-90deg);overflow:visible;flex-shrink:0}
+.tbg{fill:none;stroke:rgba(255,255,255,.1);stroke-width:4}
+.tfg{fill:none;stroke:var(--gold);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 1s linear,stroke .3s}
+.ttxt{font-family:'Mountains of Christmas',cursive;font-size:.95rem;color:var(--gold);min-width:26px;text-align:center;transition:color .3s}
+.ttxt.urgent{color:var(--red)}
+
+/* ── CONFIRM MODAL ── */
+.confirm-box{background:linear-gradient(155deg,#0f3d1c 0%,#061209 100%);border:2px solid var(--red);border-radius:18px;padding:36px 32px;max-width:380px;width:92%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+.confirm-icon{font-size:2.5rem;margin-bottom:12px}
+.confirm-title{font-family:'Mountains of Christmas',cursive;font-size:1.8rem;color:var(--cream);margin-bottom:8px}
+.confirm-msg{font-size:.85rem;color:var(--silver);margin-bottom:22px;line-height:1.5}
+.confirm-btns{display:flex;gap:12px;justify-content:center}
+
+/* ── ADMIN ── */
+.admin-wrap{width:100%;max-width:1500px;margin:0 auto;padding:20px}
+.admin-hdr{display:flex;align-items:center;gap:10px;padding:0 0 16px;border-bottom:1px solid rgba(212,168,67,.3);margin-bottom:0;flex-wrap:wrap}
+.admin-ttl{font-family:'Mountains of Christmas',cursive;font-size:1.9rem;color:var(--gold)}
+.admin-acts{display:flex;gap:7px;flex-wrap:wrap;margin-left:auto}
+
+/* tabs */
+.tab-bar{display:flex;gap:4px;padding:14px 0 0;margin-bottom:18px;border-bottom:1px solid rgba(212,168,67,.2)}
+.tab-btn{padding:9px 20px;border:none;background:transparent;color:var(--silver);font-family:'Nunito',sans-serif;font-size:.83rem;font-weight:700;cursor:pointer;border-radius:10px 10px 0 0;transition:all .2s;border:1px solid transparent;border-bottom:none;position:relative;top:1px}
+.tab-btn.active{background:rgba(212,168,67,.12);color:var(--gold);border-color:rgba(212,168,67,.3)}
+.tab-btn:hover:not(.active){color:var(--cream);background:rgba(255,255,255,.04)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* admin fields */
+.global-box{background:rgba(255,255,255,.03);border:1px solid rgba(212,168,67,.2);border-radius:14px;padding:16px 18px;margin-bottom:18px}
+.global-box h3{color:var(--gold);font-size:.78rem;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
+.global-inner{display:flex;gap:14px;flex-wrap:wrap}
+.gfield{flex:1;min-width:140px}
+.gfield label{display:block;font-size:.7rem;color:var(--silver);margin-bottom:4px}
+.admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-bottom:24px}
+.acard{background:rgba(255,255,255,.035);border:1px solid rgba(212,168,67,.18);border-radius:14px;padding:16px}
+.acard-hdr{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.adot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.acat{font-size:.74rem;font-weight:900;color:var(--goldt);text-transform:uppercase;letter-spacing:.7px}
+.aqblock{background:rgba(0,0,0,.22);border-radius:10px;padding:12px;margin-bottom:8px}
+.aqpts{font-size:.66rem;color:var(--gold);margin-bottom:8px;font-weight:700}
+.af{margin-bottom:8px}
+.af label{display:block;font-size:.67rem;color:var(--silver);margin-bottom:3px}
+.ainp,.asel,.ata{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(212,168,67,.22);border-radius:7px;color:var(--cream);padding:7px 10px;font-size:.8rem;font-family:'Nunito',sans-serif;outline:none;transition:border-color .2s}
+.ainp:focus,.asel:focus,.ata:focus{border-color:var(--gold)}
+.ata{height:52px;resize:vertical}
+.asel option{background:#0f2012;color:var(--cream)}
+.ar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ar3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.achk-lbl{display:flex;align-items:center;gap:6px;font-size:.76rem;color:var(--silver);cursor:pointer}
+.achk-lbl input{accent-color:var(--gold)}
+
+/* categories tab */
+.cat-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.cat-row{background:rgba(255,255,255,.04);border:1px solid rgba(212,168,67,.18);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cat-swatch{width:28px;height:28px;border-radius:6px;border:2px solid rgba(255,255,255,.2);flex-shrink:0;cursor:pointer;appearance:none;padding:0}
+.cat-field{display:flex;flex-direction:column;gap:3px;flex:1;min-width:80px}
+.cat-field label{font-size:.63rem;color:var(--silver);text-transform:uppercase;letter-spacing:.5px}
+.cat-field input{background:rgba(255,255,255,.07);border:1px solid rgba(212,168,67,.22);border-radius:7px;color:var(--cream);padding:6px 10px;font-size:.82rem;font-family:'Nunito',sans-serif;outline:none;width:100%;transition:border-color .2s}
+.cat-field input:focus{border-color:var(--gold)}
+.cat-del{background:rgba(192,57,43,.2);border:1px solid rgba(192,57,43,.4);color:#ff6b5b;padding:7px 12px;border-radius:20px;cursor:pointer;font-size:.75rem;font-family:'Nunito',sans-serif;font-weight:700;transition:all .2s;flex-shrink:0}
+.cat-del:hover{background:rgba(192,57,43,.4);transform:translateY(-1px)}
+.add-cat-box{background:rgba(212,168,67,.05);border:1px dashed rgba(212,168,67,.35);border-radius:14px;padding:16px 18px;margin-bottom:20px}
+.add-cat-box h3{color:var(--gold);font-size:.78rem;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}
+.add-cat-inner{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.add-cat-inner .cat-field{flex:1;min-width:120px}
+.cat-add-btn{background:linear-gradient(135deg,var(--gold),#a0720a);color:var(--bg);border:none;border-radius:20px;padding:8px 18px;font-size:.82rem;font-weight:900;font-family:'Nunito',sans-serif;cursor:pointer;transition:all .2s;flex-shrink:0;align-self:flex-end;margin-bottom:0}
+.cat-add-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(212,168,67,.35)}
+.cat-warning{font-size:.72rem;color:#ff8c5a;margin-top:6px;padding:8px 12px;background:rgba(255,100,0,.1);border-radius:8px;border-left:3px solid #ff6422}
+
+/* settings tab */
+.settings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:20px}
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px}
+.theme-card{background:rgba(255,255,255,.04);border:2px solid rgba(212,168,67,.2);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all .2s}
+.theme-card:hover{border-color:rgba(212,168,67,.5);background:rgba(212,168,67,.08)}
+.theme-card.selected{border-color:var(--gold);background:rgba(212,168,67,.15);box-shadow:0 0 20px rgba(212,168,67,.25)}
+.theme-icon{font-size:2rem;margin-bottom:6px}
+.theme-name{font-size:.8rem;color:var(--cream);font-weight:700}
+
+/* toast */
+.toast{position:fixed;bottom:80px;right:18px;background:var(--gm,#1a5c2e);border:1px solid var(--gold);color:var(--cream);padding:11px 18px;border-radius:10px;font-size:.83rem;z-index:9999;animation:tin .3s ease,tout .3s ease 2.7s forwards}
+@keyframes tin{from{transform:translateX(80px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes tout{to{transform:translateX(80px);opacity:0}}
+
+/* confetti */
+.conf{position:fixed;z-index:9998;pointer-events:none;animation:cfall linear forwards}
+@keyframes cfall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(212,168,67,.5);border-radius:3px}
+input[type="color"]{-webkit-appearance:none;width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;padding:2px;background:none}
+input[type="color"]::-webkit-color-swatch-wrapper{padding:0}
+input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgba(255,255,255,.2)}
+</style>
+</head>
+<body>
+
+<div id="snow"></div>
+
+<!-- ════════════════════════════════ SETUP ════════════════════════════════ -->
+<div class="screen" id="setup-screen">
+  <div class="setup-card">
+    <span class="setup-tree" id="setup-icon">🎄</span>
+    <div class="setup-title" id="setup-title-txt">Weihnachts&shy;quiz</div>
+    <div class="setup-sub" id="setup-sub-txt">⭐ Das festlichste Quiz des Jahres ⭐</div>
+    <div id="step-count">
+      <label class="setup-label">Wie viele Teams spielen mit?</label>
+      <input class="setup-input" type="number" id="tc-inp" min="1" max="10" value="2">
+      <button class="setup-btn" onclick="goNames()">Weiter →</button>
+    </div>
+    <div id="step-names" style="display:none">
+      <label class="setup-label">Teamnamen eingeben:</label>
+      <div class="team-name-inputs" id="tni"></div>
+      <button class="setup-btn" id="start-btn" onclick="startGame()">🎄 Quiz starten!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ QUIZ ════════════════════════════════ -->
+<div class="screen" id="quiz-screen" style="display:none">
+  <div class="qhdr">
+    <div class="qhdr-stars" id="qhdr-stars">★ ★ ★ ★ ★ ★ ★</div>
+    <div class="qhdr-title" id="qhdr-title">🎄 Weihnachts Trivia Quiz 🎄</div>
+  </div>
+  <button class="admin-fab" onclick="showAdmin()">⚙ Admin</button>
+  <div class="board-wrap">
+    <table class="board-table" id="board"></table>
+  </div>
+  <div class="score-bar" id="score-bar"></div>
+</div>
+
+<!-- ════════════════════════════════ QUESTION MODAL ════════════════════════════════ -->
+<div class="overlay" id="q-overlay" style="display:none">
+  <div class="qmodal">
+    <div class="mhdr">
+      <div>
+        <div class="mcat" id="m-cat"></div>
+      </div>
+      <div class="mpts" id="m-pts"></div>
+    </div>
+    <div class="mbody" id="m-body"></div>
+    <div class="ans-sec" id="ans-sec" style="display:none">
+      <div class="ans-lbl">✓ Antwort</div>
+      <div class="ans-txt" id="ans-txt"></div>
+    </div>
+    <div class="award-sec" id="award-sec" style="display:none">
+      <div class="award-lbl">Punkte vergeben an (jedes Team nur einmal):</div>
+      <div class="award-btns" id="award-btns"></div>
+    </div>
+    <div class="mftr">
+      <button class="btn btn-gold" id="btn-reveal" onclick="revealAnswer()">Antwort zeigen</button>
+      <button class="btn btn-out" onclick="closeQ()">✕ Schließen</button>
+      <div class="timer-wrap">
+        <svg class="tcircle" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+          <circle class="tbg" cx="25" cy="25" r="20"/>
+          <circle class="tfg" id="tfg" cx="25" cy="25" r="20"/>
+        </svg>
+        <span class="ttxt" id="ttxt">30</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ CONFIRM MODAL ════════════════════════════════ -->
+<div class="overlay" id="confirm-overlay" style="display:none;z-index:600">
+  <div class="confirm-box">
+    <div class="confirm-icon">⚠️</div>
+    <div class="confirm-title">Spiel neu starten?</div>
+    <div class="confirm-msg">Alle Punkte und Fortschritte werden zurückgesetzt. Fragen und Kategorien bleiben erhalten.</div>
+    <div class="confirm-btns">
+      <button class="btn btn-gold" onclick="doRestart()">Ja, neu starten</button>
+      <button class="btn btn-out" onclick="closeConfirm()">Nein</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ ADMIN ════════════════════════════════ -->
+<div class="screen" id="admin-screen" style="display:none">
+  <div class="admin-wrap">
+    <div class="admin-hdr">
+      <div class="admin-ttl">⚙ Admin Panel</div>
+      <div class="admin-acts">
+        <button class="btn btn-red" onclick="askRestart()" title="Spiel neu starten">🔄 Neu starten</button>
+        <button class="btn btn-out" onclick="importQ()">📥 Import</button>
+        <button class="btn btn-out" onclick="exportQ()">📤 Export</button>
+        <button class="btn btn-gold" onclick="saveAdmin()">💾 Speichern</button>
+        <button class="btn btn-red" style="background:rgba(139,0,0,.7)" onclick="hideAdmin()">✕ Schließen</button>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('questions')">📝 Fragen</button>
+      <button class="tab-btn" onclick="switchTab('categories')">📁 Kategorien</button>
+      <button class="tab-btn" onclick="switchTab('settings')">🎨 Einstellungen</button>
+    </div>
+
+    <!-- FRAGEN TAB -->
+    <div class="tab-panel active" id="tab-questions">
+      <div class="global-box">
+        <h3>⏱ Standard-Timer (Sekunden)</h3>
+        <div class="global-inner">
+          <div class="gfield"><label>200 Punkte</label><input class="ainp" type="number" id="t200" value="30" min="5" max="300" placeholder="30"></div>
+          <div class="gfield"><label>500 Punkte</label><input class="ainp" type="number" id="t500" value="45" min="5" max="300" placeholder="45"></div>
+          <div class="gfield"><label>1000 Punkte</label><input class="ainp" type="number" id="t1000" value="60" min="5" max="300" placeholder="60"></div>
+        </div>
+      </div>
+      <div class="admin-grid" id="admin-grid"></div>
+    </div>
+
+    <!-- KATEGORIEN TAB -->
+    <div class="tab-panel" id="tab-categories">
+      <div class="global-box" style="margin-bottom:18px">
+        <h3>📋 Hinweis</h3>
+        <div style="font-size:.78rem;color:var(--silver);line-height:1.5">Änderungen an Namen, Emoji und Farbe werden beim <strong style="color:var(--gold)">Speichern</strong> übernommen. Beim Löschen einer Kategorie werden alle zugehörigen Fragen entfernt. Exportiere vorher das JSON um nichts zu verlieren.</div>
+      </div>
+      <div class="cat-list" id="cat-list"></div>
+      <div class="add-cat-box">
+        <h3>➕ Neue Kategorie</h3>
+        <div class="add-cat-inner">
+          <div class="cat-field"><label>Emoji</label><input type="text" id="new-cat-emoji" value="⭐" placeholder="⭐" style="max-width:80px"></div>
+          <div class="cat-field"><label>Name</label><input type="text" id="new-cat-name" placeholder="Kategoriename"></div>
+          <div class="cat-field"><label>Farbe</label><input type="color" id="new-cat-color" value="#2E7D32" class="cat-swatch"></div>
+          <button class="cat-add-btn" onclick="addCategory()">+ Hinzufügen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EINSTELLUNGEN TAB -->
+    <div class="tab-panel" id="tab-settings">
+      <div class="global-box">
+        <h3>🎨 Theme auswählen</h3>
+        <div class="theme-grid" id="theme-grid"></div>
+      </div>
+      <div class="global-box">
+        <h3>📝 Quiz-Titel</h3>
+        <div class="global-inner">
+          <div class="gfield" style="flex:2;min-width:260px">
+            <label>Titel (wird im Quiz angezeigt)</label>
+            <input class="ainp" type="text" id="quiz-title-inp" placeholder="Quiz Titel">
+          </div>
+          <div class="gfield" style="display:flex;align-items:flex-end">
+            <button class="btn btn-out" onclick="resetTitle()" style="white-space:nowrap;margin-bottom:0">↺ Standard</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="imp-file" accept=".json" style="display:none" onchange="handleImport(event)">
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  CONSTANTS & DEFAULTS
+// ════════════════════════════════════════════════════════
+const DEFAULT_CATS = [];
+const PTS = [200,500,1000];
+
+const THEMES = {
+  christmas:{
+    label:'🎄 Weihnachten',
+    bg:'#061209',bgMid:'#0c1f11',gd:'#0f3d1c',
+    gold:'#d4a843',goldt:'#f0c060',red:'#c0392b',
+    cream:'#f5edd8',silver:'#b0b0b0',
+    boardBg:'radial-gradient(ellipse at 50% 0%,#0f3d1c 0%,#061209 65%)',
+    setupBg:'radial-gradient(ellipse at 50% 30%,#0f3d1c 0%,#061209 70%)',
+    adminBg:'#060e06',
+    particles:['❄','❅','❆','✦','·','*'],
+    defaultTitle:'🎄 Weihnachts Trivia Quiz 🎄',
+    icon:'🎄',sub:'⭐ Das festlichste Quiz des Jahres ⭐',
+    startBtn:'🎄 Quiz starten!',
+  },
+  easter:{
+    label:'🐣 Ostern',
+    bg:'#12082a',bgMid:'#1e1040',gd:'#3a1e6e',
+    gold:'#c872ff',goldt:'#e0aaff',red:'#ff6baa',
+    cream:'#fef0ff',silver:'#c090d0',
+    boardBg:'radial-gradient(ellipse at 50% 0%,#4a1a8c 0%,#12082a 65%)',
+    setupBg:'radial-gradient(ellipse at 50% 30%,#3a1e6e 0%,#12082a 70%)',
+    adminBg:'#0d0620',
+    particles:['🌸','🌷','🥚','🐣','🌼','·'],
+    defaultTitle:'🐣 Oster Trivia Quiz 🐣',
+    icon:'🐣',sub:'🌸 Auf der Suche nach Osterwissen 🌸',
+    startBtn:'🐣 Quiz starten!',
+  },
+  birthday:{
+    label:'🎂 Geburtstag',
+    bg:'#0d0018',bgMid:'#180030',gd:'#2a0060',
+    gold:'#ff6ec7',goldt:'#ff9de2',red:'#ff3366',
+    cream:'#fff0fc',silver:'#d0a0c8',
+    boardBg:'radial-gradient(ellipse at 50% 0%,#4a0090 0%,#0d0018 65%)',
+    setupBg:'radial-gradient(ellipse at 50% 30%,#2a0060 0%,#0d0018 70%)',
+    adminBg:'#090012',
+    particles:['🎈','🎉','⭐','✨','🎊','·'],
+    defaultTitle:'🎂 Geburtstags Quiz 🎂',
+    icon:'🎂',sub:'🎉 Wissen ist das beste Geschenk! 🎉',
+    startBtn:'🎊 Quiz starten!',
+  },
+  wedding:{
+    label:'💍 Hochzeit',
+    bg:'#100c0f',bgMid:'#1c1220',gd:'#301f2e',
+    gold:'#d4a843',goldt:'#e8c870',red:'#c08090',
+    cream:'#fdf5f8',silver:'#c0a8b8',
+    boardBg:'radial-gradient(ellipse at 50% 0%,#4a2040 0%,#100c0f 65%)',
+    setupBg:'radial-gradient(ellipse at 50% 30%,#301f2e 0%,#100c0f 70%)',
+    adminBg:'#0a080c',
+    particles:['💍','💐','🌹','💕','✨','·'],
+    defaultTitle:'💍 Hochzeits Quiz 💍',
+    icon:'💍',sub:'💕 Auf in den Wissens-Bund fürs Leben 💕',
+    startBtn:'💍 Quiz starten!',
+  },
+  party:{
+    label:'🎊 Party',
+    bg:'#050514',bgMid:'#0a0a28',gd:'#0f0f44',
+    gold:'#00ffcc',goldt:'#66ffee',red:'#ff0066',
+    cream:'#e0faff',silver:'#80a8c0',
+    boardBg:'radial-gradient(ellipse at 50% 0%,#1a0a60 0%,#050514 65%)',
+    setupBg:'radial-gradient(ellipse at 50% 30%,#0f0f44 0%,#050514 70%)',
+    adminBg:'#020210',
+    particles:['🎊','🎉','⚡','💫','🌟','·'],
+    defaultTitle:'🎊 Party Quiz 🎊',
+    icon:'🎊',sub:'⚡ Die Party-Wissens-Challenge ⚡',
+    startBtn:'🎊 Quiz starten!',
+  },
+};
+
+// ════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════
+const S = {
+  teams:[],
+  cats:JSON.parse(JSON.stringify(DEFAULT_CATS)),
+  qs:[],
+  used:new Set(),
+  timers:[10,20,30],
+  cur:null,
+  tid:null,tval:0,tmax:30,
+  awardedTeams:new Set(),
+  theme:'christmas',
+  title:'🎄 Weihnachts Trivia Quiz 🎄',
+};
+
+// ════════════════════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════════════════════
+function defQ(ci,pi){
+  return {type:'text',question:'',answer:'',pixelated:false,
+          timer:null,startTime:null,duration:null};
+}
+function initQs(){
+  S.qs = S.cats.map((_,ci)=>PTS.map((_,pi)=>defQ(ci,pi)));
+}
+function ensureQsForCats(){
+  // Make sure S.qs has an entry for every category
+  while(S.qs.length < S.cats.length){
+    const ci = S.qs.length;
+    S.qs.push(PTS.map((_,pi)=>defQ(ci,pi)));
+  }
+  S.qs.length = S.cats.length; // trim if cats removed
+}
+
+// ════════════════════════════════════════════════════════
+//  LOCAL STORAGE
+// ════════════════════════════════════════════════════════
+function save(){
+  localStorage.setItem('xq2',JSON.stringify({
+    qs:S.qs,timers:S.timers,cats:S.cats,theme:S.theme,title:S.title
+  }));
+}
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem('xq2'));
+    if(!d)return;
+    if(d.theme && THEMES[d.theme]) S.theme=d.theme;
+    if(d.title) S.title=d.title;
+    if(d.timers) S.timers=d.timers;
+    if(d.cats) S.cats=d.cats;
+    if(d.qs){
+      S.qs=d.qs;
+      // Nullify timers that equal defaults (migration)
+      S.qs.forEach((col,ci)=>col.forEach((q,pi)=>{
+        if(q.timer===S.timers[pi]) q.timer=null;
+      }));
+    }
+  }catch(_){}
+}
+
+// ════════════════════════════════════════════════════════
+//  SNOW / PARTICLES
+// ════════════════════════════════════════════════════════
+function createSnow(chars){
+  const c=document.getElementById('snow');
+  c.innerHTML='';
+  for(let i=0;i<55;i++){
+    const s=document.createElement('span');
+    s.className='sf';
+    s.textContent=chars[Math.floor(Math.random()*chars.length)];
+    s.style.cssText=`left:${Math.random()*100}vw;font-size:${.5+Math.random()*1.3}em;`+
+      `animation-duration:${7+Math.random()*18}s;animation-delay:${Math.random()*18}s;`+
+      `opacity:${.2+Math.random()*.55}`;
+    c.appendChild(s);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  THEME
+// ════════════════════════════════════════════════════════
+function applyTheme(id,updateTitle){
+  S.theme=id;
+  const t=THEMES[id];
+  const r=document.documentElement.style;
+  r.setProperty('--bg',t.bg);
+  r.setProperty('--bg-mid',t.bgMid);
+  r.setProperty('--gd',t.gd);
+  r.setProperty('--gold',t.gold);
+  r.setProperty('--goldt',t.goldt);
+  r.setProperty('--red',t.red);
+  r.setProperty('--cream',t.cream);
+  r.setProperty('--silver',t.silver);
+  const ss=document.getElementById('setup-screen');
+  const qs=document.getElementById('quiz-screen');
+  const as=document.getElementById('admin-screen');
+  if(ss) ss.style.background=t.setupBg;
+  if(qs) qs.style.background=t.boardBg;
+  if(as) as.style.background=t.adminBg;
+  // QModal bg
+  document.querySelectorAll('.qmodal').forEach(m=>{
+    m.style.background=`linear-gradient(155deg,${t.gd} 0%,${t.bg} 100%)`;
+  });
+  document.querySelectorAll('.confirm-box').forEach(m=>{
+    m.style.background=`linear-gradient(155deg,${t.gd} 0%,${t.bg} 100%)`;
+  });
+  createSnow(t.particles);
+  // Setup card text
+  const si=document.getElementById('setup-icon');
+  const st=document.getElementById('setup-title-txt');
+  const ss2=document.getElementById('setup-sub-txt');
+  const sb=document.getElementById('start-btn');
+  if(si) si.textContent=t.icon;
+  if(ss2) ss2.textContent=t.sub;
+  if(sb) sb.textContent=t.startBtn;
+  if(updateTitle){
+    S.title=t.defaultTitle;
+  }
+  updateTitleDisplay();
+  // Mark theme cards
+  document.querySelectorAll('.theme-card').forEach(c=>{
+    c.classList.toggle('selected',c.dataset.tid===id);
+  });
+  const ti=document.getElementById('quiz-title-inp');
+  if(ti) ti.value=S.title;
+}
+function updateTitleDisplay(){
+  const h=document.getElementById('qhdr-title');
+  const pt=document.getElementById('page-title');
+  const st=document.getElementById('setup-title-txt');
+  const plain=S.title.replace(/\p{Emoji}/gu,'').trim()||S.title;
+  if(h) h.textContent=S.title;
+  if(pt) pt.textContent=S.title;
+  // Extract icon from title for setup
+  const iconMatch=S.title.match(/\p{Emoji}/u);
+  const icon2=iconMatch?iconMatch[0]:THEMES[S.theme].icon;
+  const ti=document.getElementById('setup-icon');
+  if(ti) ti.textContent=icon2;
+  // setup title = theme label without emoji
+  if(st){
+    const t=THEMES[S.theme];
+    st.textContent=S.title.replace(/^\p{Emoji}+\s*/u,'').replace(/\s*\p{Emoji}+$/u,'').trim()||t.defaultTitle;
+  }
+}
+function resetTitle(){
+  S.title=THEMES[S.theme].defaultTitle;
+  const ti=document.getElementById('quiz-title-inp');
+  if(ti) ti.value=S.title;
+  updateTitleDisplay();
+}
+
+// ════════════════════════════════════════════════════════
+//  SETUP FLOW
+// ════════════════════════════════════════════════════════
+function goNames(){
+  const n=Math.min(Math.max(parseInt(document.getElementById('tc-inp').value)||2,1),10);
+  const box=document.getElementById('tni');
+  box.innerHTML='';
+  for(let i=0;i<n;i++){
+    const inp=document.createElement('input');
+    inp.className='setup-input';
+    inp.style.marginBottom='0';
+    inp.placeholder=`Team ${i+1}`;
+    inp.value=`Team ${i+1}`;
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')startGame();});
+    box.appendChild(inp);
+  }
+  document.getElementById('step-count').style.display='none';
+  document.getElementById('step-names').style.display='block';
+}
+function startGame(){
+  S.teams=Array.from(document.querySelectorAll('#tni .setup-input'))
+    .map(i=>({name:i.value.trim()||i.placeholder,score:0}));
+  show('quiz-screen');
+  renderBoard();
+  renderScores();
+}
+
+// ════════════════════════════════════════════════════════
+//  BOARD
+// ════════════════════════════════════════════════════════
+function renderBoard(){
+  const t=document.getElementById('board');
+  t.innerHTML='';
+  const thead=t.createTHead();
+  const hr=thead.insertRow();
+  S.cats.forEach(cat=>{
+    const th=document.createElement('th');
+    th.className='cath';
+    th.style.background=cat.color;
+    th.style.boxShadow=`0 4px 16px ${cat.color}55`;
+    th.innerHTML=`<span class="ce">${cat.emoji}</span>${esc(cat.name)}`;
+    hr.appendChild(th);
+  });
+  const tb=t.createTBody();
+  PTS.forEach((pts,pi)=>{
+    const row=tb.insertRow();
+    S.cats.forEach((cat,ci)=>{
+      const key=`${ci}-${pi}`;
+      const td=row.insertCell();
+      td.className='pc'+(S.used.has(key)?' used':'');
+      td.style.background=cat.color+'bb';
+      td.style.border=`1px solid ${cat.color}`;
+      td.innerHTML=`<span class="pv">${pts}</span>`;
+      if(!S.used.has(key)) td.onclick=()=>openQ(ci,pi);
+    });
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  SCORES
+// ════════════════════════════════════════════════════════
+function renderScores(){
+  const bar=document.getElementById('score-bar');
+  bar.innerHTML='';
+  S.teams.forEach((t,i)=>{
+    const d=document.createElement('div');
+    d.className='team-card';
+    d.id=`tc${i}`;
+    d.innerHTML=`<div class="tn">${esc(t.name)}</div><div class="ts">${t.score}</div>`;
+    bar.appendChild(d);
+  });
+}
+function bumpScore(idx,delta){
+  S.teams[idx].score+=delta;
+  const c=document.getElementById(`tc${idx}`);
+  if(c){
+    c.querySelector('.ts').textContent=S.teams[idx].score;
+    c.classList.add('hi');
+    setTimeout(()=>c.classList.remove('hi'),1800);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  YOUTUBE HELPER
+// ════════════════════════════════════════════════════════
+function ytId(url){
+  if(!url) return null;
+  const m=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  return m?m[1]:null;
+}
+function buildMediaEl(q){
+  const id=ytId(q.question);
+  const start=parseInt(q.startTime)||0;
+  const dur=parseInt(q.duration)||0;
+
+  if(id){
+    // YouTube iframe embed
+    let src=`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&start=${start}`;
+    if(dur>0) src+=`&end=${start+dur}`;
+    src+='&autoplay=1';
+    const fr=document.createElement('iframe');
+    fr.className='qytembed';
+    fr.src=src;
+    fr.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    fr.allowFullscreen=true;
+    return fr;
+  }
+
+  if(q.type==='video'){
+    const v=document.createElement('video');
+    v.className='qvid';
+    v.src=q.question;
+    v.controls=true;
+    if(start>0||dur>0){
+      v.addEventListener('loadedmetadata',()=>{
+        if(start>0) v.currentTime=start;
+        v.play().catch(()=>{});
+      });
+      if(dur>0){
+        v.addEventListener('timeupdate',()=>{
+          if(v.currentTime>=(start+dur)){v.pause();}
+        });
+      }
+    } else {
+      v.autoplay=true;
+    }
+    return v;
+  }
+
+  // audio (non-youtube)
+  const wrap=document.createElement('div');
+  wrap.className='qaud-wrap';
+  wrap.innerHTML='<div style="font-size:3.5rem;margin-bottom:14px">🎵</div><div style="color:var(--silver);font-size:.82rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Audio-Frage</div>';
+  const a=document.createElement('audio');
+  a.className='qaud';
+  a.src=q.question;
+  a.controls=true;
+  if(start>0||dur>0){
+    a.addEventListener('loadedmetadata',()=>{
+      if(start>0) a.currentTime=start;
+      a.play().catch(()=>{});
+    });
+    if(dur>0){
+      a.addEventListener('timeupdate',()=>{
+        if(a.currentTime>=(start+dur)){a.pause();}
+      });
+    }
+  } else {
+    a.autoplay=true;
+  }
+  wrap.appendChild(a);
+  return wrap;
+}
+
+// ════════════════════════════════════════════════════════
+//  PIXELATION (CSS transform trick — no CORS issues)
+// ════════════════════════════════════════════════════════
+function buildPixelImg(src,container){
+  // Use offscreen canvas: draw at low resolution, render at full size
+  // We do NOT set crossOrigin to avoid CORS errors — tainted canvas is fine for display
+  const off=document.createElement('canvas');
+  const BLOCK=16;
+  off.width=Math.ceil(400/BLOCK);
+  off.height=Math.ceil(300/BLOCK);
+  const cvs=document.createElement('canvas');
+  cvs.width=400;cvs.height=300;
+  cvs.style.maxWidth='100%';cvs.style.maxHeight='300px';
+  cvs.style.borderRadius='12px';
+  cvs.style.display='block';cvs.style.margin='auto';
+  const img=new Image();
+  img.onload=()=>{
+    const oc=off.getContext('2d');
+    oc.imageSmoothingEnabled=false;
+    oc.drawImage(img,0,0,off.width,off.height);
+    const ctx=cvs.getContext('2d');
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(off,0,0,cvs.width,cvs.height);
+    container.appendChild(cvs);
+  };
+  img.onerror=()=>{
+    // Fallback: just show the image normally
+    const fi=document.createElement('img');
+    fi.className='qimg';fi.src=src;fi.alt='';
+    container.appendChild(fi);
+  };
+  // Do NOT set crossOrigin — without it the image loads from cache too
+  img.src=src;
+}
+
+// ════════════════════════════════════════════════════════
+//  QUESTION MODAL
+// ════════════════════════════════════════════════════════
+function openQ(ci,pi){
+  S.cur={ci,pi};
+  S.awardedTeams=new Set();
+  const cat=S.cats[ci];
+  const pts=PTS[pi];
+  const q=(S.qs[ci]&&S.qs[ci][pi])||defQ(ci,pi);
+
+  document.getElementById('m-cat').textContent=`${cat.emoji}  ${cat.name}`;
+  document.getElementById('m-pts').textContent=`${pts} Punkte`;
+
+  const body=document.getElementById('m-body');
+  body.innerHTML='';
+
+  if(q.type==='text'){
+    const d=document.createElement('div');
+    d.className='qtxt';
+    d.textContent=q.question||'(Keine Frage hinterlegt)';
+    body.appendChild(d);
+  } else if(q.type==='image'){
+    if(!q.question){
+      body.innerHTML='<div class="qtxt" style="color:#666">(Kein Bild hinterlegt)</div>';
+    } else if(q.pixelated){
+      buildPixelImg(q.question,body);
+    } else {
+      const img=document.createElement('img');
+      img.className='qimg';img.src=q.question;img.alt='';
+      body.appendChild(img);
+    }
+  } else if(q.type==='video'||q.type==='audio'){
+    if(!q.question){
+      body.innerHTML=`<div class="qtxt" style="color:#666">(Keine ${q.type==='video'?'Video':'Audio'}-URL hinterlegt)</div>`;
+    } else {
+      body.appendChild(buildMediaEl(q));
+    }
+  }
+
+  document.getElementById('ans-sec').style.display='none';
+  document.getElementById('award-sec').style.display='none';
+  document.getElementById('ans-txt').textContent=q.answer||'(Keine Antwort hinterlegt)';
+  document.getElementById('btn-reveal').disabled=false;
+
+  document.getElementById('q-overlay').style.display='flex';
+  startTimer(q.timer||S.timers[pi]||30);
+}
+
+function revealAnswer(){
+  stopTimer();
+  document.getElementById('ans-sec').style.display='block';
+  document.getElementById('btn-reveal').disabled=true;
+  const btns=document.getElementById('award-btns');
+  btns.innerHTML='';
+  S.teams.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='abt';
+    b.id=`ab${i}`;
+    b.textContent=`🏆 ${t.name}`;
+    b.onclick=function(){awardPts(i,this);};
+    btns.appendChild(b);
+  });
+  document.getElementById('award-sec').style.display='block';
+}
+
+function awardPts(idx,btn){
+  if(S.awardedTeams.has(idx)) return;
+  S.awardedTeams.add(idx);
+  const pts=PTS[S.cur.pi];
+  bumpScore(idx,pts);
+  btn.classList.add('awarded');
+  btn.textContent=`✓ ${S.teams[idx].name}`;
+  toast(`+${pts} Punkte für ${S.teams[idx].name}!`);
+  confetti();
+}
+
+function closeQ(){
+  stopTimer();
+  if(S.cur){
+    S.used.add(`${S.cur.ci}-${S.cur.pi}`);
+    S.cur=null;
+  }
+  document.getElementById('q-overlay').style.display='none';
+  document.querySelectorAll('#m-body video,#m-body audio,#m-body iframe')
+    .forEach(m=>{try{m.src='';m.pause&&m.pause();}catch(_){}});
+  renderBoard();
+}
+
+// ════════════════════════════════════════════════════════
+//  TIMER
+// ════════════════════════════════════════════════════════
+const R=20,C=2*Math.PI*R;
+function startTimer(sec){
+  stopTimer();
+  S.tval=sec;S.tmax=sec;
+  tickUI(sec,sec);
+  S.tid=setInterval(()=>{
+    S.tval--;
+    tickUI(S.tval,S.tmax);
+    if(S.tval<=0){stopTimer();document.getElementById('ttxt').textContent='⏰';}
+  },1000);
+}
+function stopTimer(){if(S.tid){clearInterval(S.tid);S.tid=null;}}
+function tickUI(v,max){
+  const frac=Math.max(0,v/max);
+  const off=C*(1-frac);
+  const fg=document.getElementById('tfg');
+  const tx=document.getElementById('ttxt');
+  fg.style.strokeDasharray=C;
+  fg.style.strokeDashoffset=off;
+  tx.textContent=Math.max(0,v);
+  fg.style.stroke=v<=10?'#e74c3c':v<=20?'#f39c12':'var(--gold)';
+  tx.classList.toggle('urgent',v<=10);
+}
+
+// ════════════════════════════════════════════════════════
+//  ADMIN – TABS
+// ════════════════════════════════════════════════════════
+let activeTab='questions';
+function switchTab(name){
+  activeTab=name;
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    const tabs=['questions','categories','settings'];
+    b.classList.toggle('active',tabs[i]===name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='categories') renderCategoriesTab();
+  if(name==='settings') renderSettingsTab();
+}
+
+// ════════════════════════════════════════════════════════
+//  ADMIN – SHOW / HIDE
+// ════════════════════════════════════════════════════════
+function showAdmin(){
+  hide('quiz-screen');
+  show('admin-screen');
+  renderQuestionsTab();
+  if(activeTab==='categories') renderCategoriesTab();
+  if(activeTab==='settings') renderSettingsTab();
+}
+function hideAdmin(){
+  hide('admin-screen');
+  show('quiz-screen');
+}
+
+// ════════════════════════════════════════════════════════
+//  ADMIN – QUESTIONS TAB
+// ════════════════════════════════════════════════════════
+function renderQuestionsTab(){
+  document.getElementById('t200').value=S.timers[0];
+  document.getElementById('t500').value=S.timers[1];
+  document.getElementById('t1000').value=S.timers[2];
+  const grid=document.getElementById('admin-grid');
+  grid.innerHTML='';
+  S.cats.forEach((cat,ci)=>{
+    if(!S.qs[ci]) S.qs[ci]=PTS.map((_,pi)=>defQ(ci,pi));
+    const card=document.createElement('div');
+    card.className='acard';
+    let html=`<div class="acard-hdr"><div class="adot" style="background:${cat.color}"></div><div class="acat">${cat.emoji} ${esc(cat.name)}</div></div>`;
+    PTS.forEach((pts,pi)=>{
+      const q=S.qs[ci][pi]||defQ(ci,pi);
+      const isMedia=q.type==='video'||q.type==='audio';
+      html+=`
+      <div class="aqblock">
+        <div class="aqpts">⭐ ${pts} Punkte</div>
+        <div class="af"><label>Typ</label>
+          <select class="asel" id="qt-${ci}-${pi}" onchange="onTC(${ci},${pi})">
+            <option value="text"  ${q.type==='text' ?'selected':''}>📝 Text</option>
+            <option value="image" ${q.type==='image'?'selected':''}>🖼️ Bild (URL)</option>
+            <option value="video" ${q.type==='video'?'selected':''}>🎬 Video/YouTube</option>
+            <option value="audio" ${q.type==='audio'?'selected':''}>🎵 Audio/YouTube</option>
+          </select>
+        </div>
+        <div class="af" id="px-row-${ci}-${pi}" style="${q.type==='image'?'':'display:none'}">
+          <label class="achk-lbl"><input type="checkbox" ${q.pixelated?'checked':''} id="qpx-${ci}-${pi}"> Verpixelt anzeigen</label>
+        </div>
+        <div class="af">
+          <label id="ql-${ci}-${pi}">${q.type==='text'?'Frage':'Medien-URL (YouTube oder direkt)'}</label>
+          <textarea class="ata" id="qq-${ci}-${pi}" placeholder="${q.type==='text'?'Frage eingeben …':'URL eingeben …'}">${esc(q.question)}</textarea>
+        </div>
+        <div id="media-opts-${ci}-${pi}" style="${isMedia?'':'display:none'}">
+          <div class="ar">
+            <div class="af"><label>Startzeit (Sek.)</label><input class="ainp" type="number" id="qst-${ci}-${pi}" value="${q.startTime||''}" min="0" placeholder="0"></div>
+            <div class="af"><label>Dauer (Sek.)</label><input class="ainp" type="number" id="qdur-${ci}-${pi}" value="${q.duration||''}" min="1" placeholder="Ende"></div>
+          </div>
+        </div>
+        <div class="af"><label>Antwort</label><textarea class="ata" id="qa-${ci}-${pi}" placeholder="Antwort …">${esc(q.answer)}</textarea></div>
+        <div class="af"><label>Timer (Sek.) — leer = Standard</label><input class="ainp" type="number" id="qtm-${ci}-${pi}" value="${q.timer||''}" min="5" max="300" placeholder="Standard"></div>
+      </div>`;
+    });
+    card.innerHTML=html;
+    grid.appendChild(card);
+  });
+}
+
+function onTC(ci,pi){
+  const t=document.getElementById(`qt-${ci}-${pi}`).value;
+  document.getElementById(`px-row-${ci}-${pi}`).style.display=t==='image'?'':'none';
+  document.getElementById(`ql-${ci}-${pi}`).textContent=t==='text'?'Frage':'Medien-URL (YouTube oder direkt)';
+  document.getElementById(`qq-${ci}-${pi}`).placeholder=t==='text'?'Frage eingeben …':'URL eingeben …';
+  const isMedia=t==='video'||t==='audio';
+  document.getElementById(`media-opts-${ci}-${pi}`).style.display=isMedia?'':'none';
+}
+
+// ════════════════════════════════════════════════════════
+//  ADMIN – CATEGORIES TAB
+// ════════════════════════════════════════════════════════
+function renderCategoriesTab(){
+  const list=document.getElementById('cat-list');
+  list.innerHTML='';
+  S.cats.forEach((cat,ci)=>{
+    const row=document.createElement('div');
+    row.className='cat-row';
+    row.id=`cr-${ci}`;
+    row.innerHTML=`
+      <div class="cat-field" style="max-width:70px"><label>Emoji</label><input type="text" id="ce-${ci}" value="${esc(cat.emoji)}" placeholder="⭐" maxlength="4"></div>
+      <div class="cat-field" style="flex:2"><label>Name</label><input type="text" id="cn-${ci}" value="${esc(cat.name)}" placeholder="Kategoriename"></div>
+      <div class="cat-field" style="max-width:80px"><label>Farbe</label><input type="color" id="cc-${ci}" value="${cat.color}" class="cat-swatch" style="width:100%;height:38px;border-radius:8px"></div>
+      <button class="cat-del" onclick="deleteCategory(${ci})">🗑 Löschen</button>`;
+    list.appendChild(row);
+  });
+  if(S.cats.length===0){
+    list.innerHTML='<div style="color:var(--silver);font-size:.82rem;padding:12px 0">Keine Kategorien vorhanden. Füge eine neue hinzu.</div>';
+  }
+}
+
+function saveCategoryEdits(){
+  S.cats.forEach((cat,ci)=>{
+    const ne=document.getElementById(`ce-${ci}`);
+    const nn=document.getElementById(`cn-${ci}`);
+    const nc=document.getElementById(`cc-${ci}`);
+    if(ne) cat.emoji=ne.value||cat.emoji;
+    if(nn) cat.name=nn.value||cat.name;
+    if(nc) cat.color=nc.value||cat.color;
+  });
+}
+
+function deleteCategory(ci){
+  if(!confirm(`Kategorie "${S.cats[ci].name}" und alle ${PTS.length} zugehörigen Fragen löschen?`)) return;
+  S.cats.splice(ci,1);
+  S.qs.splice(ci,1);
+  save();
+  renderCategoriesTab();
+  toast(`🗑 Kategorie gelöscht`);
+}
+
+function addCategory(){
+  const emoji=document.getElementById('new-cat-emoji').value||'⭐';
+  const name=document.getElementById('new-cat-name').value.trim();
+  const color=document.getElementById('new-cat-color').value||'#2E7D32';
+  if(!name){toast('❌ Bitte einen Namen eingeben');return;}
+  const ci=S.cats.length;
+  S.cats.push({name,emoji,color});
+  S.qs.push(PTS.map((_,pi)=>defQ(ci,pi)));
+  save();
+  document.getElementById('new-cat-name').value='';
+  renderCategoriesTab();
+  toast(`✓ "${name}" hinzugefügt`);
+}
+
+// ════════════════════════════════════════════════════════
+//  ADMIN – SETTINGS TAB
+// ════════════════════════════════════════════════════════
+function renderSettingsTab(){
+  const grid=document.getElementById('theme-grid');
+  grid.innerHTML='';
+  Object.entries(THEMES).forEach(([id,t])=>{
+    const c=document.createElement('div');
+    c.className='theme-card'+(S.theme===id?' selected':'');
+    c.dataset.tid=id;
+    c.innerHTML=`<div class="theme-icon">${t.icon}</div><div class="theme-name">${t.label}</div>`;
+    c.onclick=()=>applyTheme(id,false);
+    grid.appendChild(c);
+  });
+  const ti=document.getElementById('quiz-title-inp');
+  if(ti) ti.value=S.title;
+}
+
+// ════════════════════════════════════════════════════════
+//  ADMIN – SAVE / EXPORT / IMPORT
+// ════════════════════════════════════════════════════════
+function saveAdmin(){
+  // Save timer defaults
+  S.timers=[
+    parseInt(document.getElementById('t200').value)||30,
+    parseInt(document.getElementById('t500').value)||45,
+    parseInt(document.getElementById('t1000').value)||60,
+  ];
+  // Save category edits (from categories tab)
+  saveCategoryEdits();
+  // Save title
+  const ti=document.getElementById('quiz-title-inp');
+  if(ti && ti.value.trim()) S.title=ti.value.trim();
+  updateTitleDisplay();
+  // Save questions
+  S.cats.forEach((_,ci)=>{
+    if(!S.qs[ci]) S.qs[ci]=PTS.map((_,pi)=>defQ(ci,pi));
+    PTS.forEach((_,pi)=>{
+      const q=S.qs[ci][pi];
+      q.type   =document.getElementById(`qt-${ci}-${pi}`)?.value||'text';
+      q.question=document.getElementById(`qq-${ci}-${pi}`)?.value||'';
+      q.answer  =document.getElementById(`qa-${ci}-${pi}`)?.value||'';
+      const tv  =document.getElementById(`qtm-${ci}-${pi}`)?.value;
+      q.timer   =tv?parseInt(tv):null;
+      const pc  =document.getElementById(`qpx-${ci}-${pi}`);
+      q.pixelated=pc?pc.checked:false;
+      const st  =document.getElementById(`qst-${ci}-${pi}`)?.value;
+      const dur =document.getElementById(`qdur-${ci}-${pi}`)?.value;
+      q.startTime=st?parseInt(st):null;
+      q.duration =dur?parseInt(dur):null;
+    });
+  });
+  save();
+  toast('✓ Gespeichert!');
+}
+
+function exportQ(){
+  const blob=new Blob([JSON.stringify({qs:S.qs,timers:S.timers,cats:S.cats,theme:S.theme,title:S.title},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='quiz-daten.json';
+  a.click();URL.revokeObjectURL(url);
+  toast('📤 Exportiert!');
+}
+function importQ(){document.getElementById('imp-file').click();}
+function handleImport(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(d.cats) S.cats=d.cats;
+      if(d.qs)   S.qs=d.qs;
+      if(d.timers) S.timers=d.timers;
+      if(d.theme && THEMES[d.theme]) applyTheme(d.theme,false);
+      if(d.title) S.title=d.title;
+      save();
+      renderQuestionsTab();
+      if(activeTab==='categories') renderCategoriesTab();
+      if(activeTab==='settings') renderSettingsTab();
+      updateTitleDisplay();
+      toast('✓ Importiert!');
+    }catch(_){toast('❌ Fehler beim Import');}
+  };
+  r.readAsText(f);
+  e.target.value='';
+}
+
+// ════════════════════════════════════════════════════════
+//  GAME RESTART
+// ════════════════════════════════════════════════════════
+function askRestart(){
+  document.getElementById('confirm-overlay').style.display='flex';
+}
+function closeConfirm(){
+  document.getElementById('confirm-overlay').style.display='none';
+}
+function doRestart(){
+  closeConfirm();
+  // Reset game state (keep cats/qs/teams, reset scores and used cells)
+  S.used=new Set();
+  S.teams.forEach(t=>t.score=0);
+  renderBoard();
+  renderScores();
+  toast('🔄 Spiel neu gestartet!');
+}
+
+// ════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════
+function show(id){const el=document.getElementById(id);if(el)el.style.display='flex';}
+function hide(id){const el=document.getElementById(id);if(el)el.style.display='none';}
+function esc(s){
+  const d=document.createElement('div');
+  d.appendChild(document.createTextNode(s||''));
+  return d.innerHTML;
+}
+function toast(msg){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const t=document.createElement('div');
+  t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),3200);
+}
+function confetti(){
+  const th=THEMES[S.theme];
+  const cols=[th.gold,th.red,th.goldt,th.cream,'#fff'];
+  for(let i=0;i<45;i++){
+    const el=document.createElement('div');
+    el.className='conf';
+    const sz=7+Math.random()*9;
+    el.style.cssText=
+      `left:${25+Math.random()*50}vw;top:45vh;`+
+      `width:${sz}px;height:${sz}px;`+
+      `background:${cols[Math.floor(Math.random()*cols.length)]};`+
+      `border-radius:${Math.random()>.5?'50%':'2px'};`+
+      `animation-duration:${1.2+Math.random()*.8}s;`+
+      `animation-delay:${Math.random()*.35}s;`+
+      `transform:rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),2800);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
+initQs();
+load();
+ensureQsForCats();
+applyTheme(S.theme,false);
+updateTitleDisplay();
+document.getElementById('tc-inp').addEventListener('keydown',e=>{if(e.key==='Enter')goNames();});
+show('setup-screen');
+</script>
+</body>
+</html>

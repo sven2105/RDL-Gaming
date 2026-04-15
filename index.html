@@ -940,15 +940,15 @@ function renderQuestionsTab(){
           <select class="asel" id="qt-${ci}-${pi}" onchange="onTC(${ci},${pi})">
             <option value="text"  ${q.type==='text' ?'selected':''}>📝 Text</option>
             <option value="image" ${q.type==='image'?'selected':''}>🖼️ Bild (URL)</option>
-            <option value="video" ${q.type==='video'?'selected':''}>🎬 Video/YouTube</option>
-            <option value="audio" ${q.type==='audio'?'selected':''}>🎵 Audio/YouTube</option>
+            <option value="video" ${q.type==='video'?'selected':''}>🎬 Video</option>
+            <option value="audio" ${q.type==='audio'?'selected':''}>🎵 Audio</option>
           </select>
         </div>
         <div class="af" id="px-row-${ci}-${pi}" style="${q.type==='image'?'':'display:none'}">
           <label class="achk-lbl"><input type="checkbox" ${q.pixelated?'checked':''} id="qpx-${ci}-${pi}"> Verpixelt anzeigen</label>
         </div>
         <div class="af">
-          <label id="ql-${ci}-${pi}">${q.type==='text'?'Frage':'Medien-URL (YouTube oder direkt)'}</label>
+          <label id="ql-${ci}-${pi}">${q.type==='text'?'Frage':'Medien-URL'}</label>
           <textarea class="ata" id="qq-${ci}-${pi}" placeholder="${q.type==='text'?'Frage eingeben …':'URL eingeben …'}">${esc(q.question)}</textarea>
         </div>
         <div id="media-opts-${ci}-${pi}" style="${isMedia?'':'display:none'}">
@@ -969,7 +969,7 @@ function renderQuestionsTab(){
 function onTC(ci,pi){
   const t=document.getElementById(`qt-${ci}-${pi}`).value;
   document.getElementById(`px-row-${ci}-${pi}`).style.display=t==='image'?'':'none';
-  document.getElementById(`ql-${ci}-${pi}`).textContent=t==='text'?'Frage':'Medien-URL (YouTube oder direkt)';
+  document.getElementById(`ql-${ci}-${pi}`).textContent=t==='text'?'Frage':'Medien-URL';
   document.getElementById(`qq-${ci}-${pi}`).placeholder=t==='text'?'Frage eingeben …':'URL eingeben …';
   const isMedia=t==='video'||t==='audio';
   document.getElementById(`media-opts-${ci}-${pi}`).style.display=isMedia?'':'none';

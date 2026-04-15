@@ -11,6 +11,9 @@
   --bg:#061209;--bg-mid:#0c1f11;--gd:#0f3d1c;--gm:#1a5c2e;
   --gold:#d4a843;--goldt:#f0c060;--red:#c0392b;--redd:#8b0000;
   --cream:#f5edd8;--silver:#b0b0b0;
+  --card-border:rgba(212,168,67,.6);
+  --score-bg:linear-gradient(135deg,rgba(15,61,28,.9),rgba(6,18,9,.9));
+  --score-border:rgba(212,168,67,.5);
 }
 html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--cream);transition:background .5s,color .5s}
 
@@ -26,7 +29,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 #admin-screen{background:#060e06;justify-content:flex-start;align-items:flex-start;overflow-y:auto;padding:0}
 
 /* ── SETUP ── */
-.setup-card{background:linear-gradient(145deg,rgba(15,61,28,.95),rgba(6,18,9,.97));border:2px solid var(--gold);border-radius:22px;padding:44px 40px;max-width:480px;width:92%;text-align:center;box-shadow:0 0 60px rgba(212,168,67,.25),inset 0 1px 0 rgba(255,255,255,.07)}
+.setup-card{background:linear-gradient(145deg,rgba(15,61,28,.95),rgba(6,18,9,.97));border:2px solid var(--card-border);border-radius:22px;padding:44px 40px;max-width:480px;width:92%;text-align:center;box-shadow:0 0 60px rgba(212,168,67,.25),inset 0 1px 0 rgba(255,255,255,.07);transition:border-color .4s,box-shadow .4s}
 .setup-tree{font-size:2.8rem;margin-bottom:4px;animation:sway 3s ease-in-out infinite;display:block}
 @keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
 .setup-title{font-family:'Mountains of Christmas',cursive;font-size:2.4rem;color:var(--gold);text-shadow:0 0 30px rgba(212,168,67,.5);line-height:1.1}
@@ -67,7 +70,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .pc .pv{font-family:'Mountains of Christmas',cursive;font-size:1.5rem;font-weight:700;color:var(--goldt);text-shadow:0 2px 10px rgba(0,0,0,.7);position:relative;z-index:1}
 
 /* ── SCORE BAR ── */
-.score-bar{background:linear-gradient(135deg,rgba(15,61,28,.9),rgba(6,18,9,.9));border-top:2px solid rgba(212,168,67,.5);padding:8px 16px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;flex-shrink:0;position:relative;z-index:2}
+.score-bar{background:var(--score-bg);border-top:2px solid var(--score-border);padding:8px 16px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;flex-shrink:0;position:relative;z-index:2;transition:background .4s,border-color .4s}
 .team-card{background:rgba(255,255,255,.05);border:1px solid rgba(212,168,67,.25);border-radius:12px;padding:6px 16px;text-align:center;min-width:110px;transition:all .4s}
 .team-card.hi{border-color:var(--gold);background:rgba(212,168,67,.12);box-shadow:0 0 20px rgba(212,168,67,.3)}
 .tn{font-size:.65rem;color:var(--silver);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px}
@@ -204,6 +207,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:rgba(212,168,67,.5);border-radius:3px}
+/* custom audio player */
+.audio-play-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding:10px}
+.audio-play-btn{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#a0720a);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:2rem;transition:all .2s;box-shadow:0 8px 28px rgba(0,0,0,.4)}
+.audio-play-btn:hover{transform:scale(1.08);box-shadow:0 12px 36px rgba(0,0,0,.5)}
+.audio-play-btn.playing{background:linear-gradient(135deg,#4caf50,#2e7d32)}
+.audio-play-lbl{font-size:.78rem;color:var(--silver);letter-spacing:1px;text-transform:uppercase}
+
 input[type="color"]{-webkit-appearance:none;width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;padding:2px;background:none}
 input[type="color"]::-webkit-color-swatch-wrapper{padding:0}
 input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgba(255,255,255,.2)}
@@ -222,7 +232,19 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
     <div id="step-theme">
       <label class="setup-label">Theme auswählen:</label>
       <div class="theme-pick-grid" id="theme-pick-grid"></div>
-      <button class="setup-btn" id="theme-next-btn" onclick="goCount()">Weiter →</button>
+      <button class="setup-btn" id="theme-next-btn" onclick="goJson()">Weiter →</button>
+    </div>
+    <div id="step-json" style="display:none">
+      <label class="setup-label">Fragenkatalog laden:</label>
+      <div id="json-cache-hint" style="display:none;margin-bottom:10px;padding:10px 14px;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);border-radius:10px;font-size:.8rem;color:var(--goldt)">
+        💾 Es ist bereits ein Fragenkatalog im Speicher vorhanden.
+      </div>
+      <label class="setup-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;margin-bottom:8px;background:rgba(255,255,255,.07);border:1px solid rgba(212,168,67,.4);color:var(--goldt);border-radius:50px;padding:13px">
+        <span>📂 JSON-Datei auswählen</span>
+        <input type="file" accept=".json" id="json-upload-inp" style="display:none" onchange="handleJsonUpload(event)">
+      </label>
+      <div id="json-loaded-name" style="display:none;text-align:center;font-size:.78rem;color:#90ee90;margin-bottom:8px"></div>
+      <button class="setup-btn" id="json-continue-btn" onclick="goCount()">Weiter →</button>
     </div>
     <div id="step-count" style="display:none">
       <label class="setup-label">Wie viele Teams spielen mit?</label>
@@ -537,12 +559,23 @@ function applyTheme(id,updateTitle){
   r.setProperty('--red',t.red);
   r.setProperty('--cream',t.cream);
   r.setProperty('--silver',t.silver);
+  // Theme-aware setup card border + score bar
+  r.setProperty('--card-border',t.gold);
+  r.setProperty('--score-bg',`linear-gradient(135deg,${t.gd}ee,${t.bg}ee)`);
+  r.setProperty('--score-border',t.gold+'99');
   const ss=document.getElementById('setup-screen');
   const qs=document.getElementById('quiz-screen');
   const as=document.getElementById('admin-screen');
   if(ss) ss.style.background=t.setupBg;
   if(qs) qs.style.background=t.boardBg;
   if(as) as.style.background=t.adminBg;
+  // Setup card background tinted to theme
+  const sc=document.querySelector('.setup-card');
+  if(sc) sc.style.background=`linear-gradient(145deg,${t.gd}f2,${t.bg}f8)`;
+  // Score bar team cards
+  document.querySelectorAll('.team-card').forEach(c=>{
+    c.style.borderColor=t.gold+'40';
+  });
   // QModal bg
   document.querySelectorAll('.qmodal').forEach(m=>{
     m.style.background=`linear-gradient(155deg,${t.gd} 0%,${t.bg} 100%)`;
@@ -563,9 +596,10 @@ function applyTheme(id,updateTitle){
     S.title=t.defaultTitle;
   }
   updateTitleDisplay();
-  // Mark theme cards
-  document.querySelectorAll('.theme-card').forEach(c=>{
+  // Mark theme cards (admin + setup picker)
+  document.querySelectorAll('.theme-card,.theme-pick-card').forEach(c=>{
     c.classList.toggle('selected',c.dataset.tid===id);
+    c.classList.toggle('tsel',c.dataset.tid===id);
   });
   const ti=document.getElementById('quiz-title-inp');
   if(ti) ti.value=S.title;
@@ -614,6 +648,49 @@ function renderThemePicker(){
     });
     grid.appendChild(card);
   });
+}
+function goJson(){
+  document.getElementById('step-theme').style.display='none';
+  document.getElementById('step-json').style.display='block';
+  // Show hint if there's cached data
+  const cached=localStorage.getItem('xq2');
+  const hint=document.getElementById('json-cache-hint');
+  const btn=document.getElementById('json-continue-btn');
+  if(cached){
+    try{
+      const d=JSON.parse(cached);
+      if(d.qs&&d.cats){
+        hint.style.display='block';
+        btn.textContent='Ohne neue Datei starten →';
+      }
+    }catch(_){}
+  } else {
+    btn.textContent='Weiter →';
+  }
+}
+function handleJsonUpload(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(d.cats) S.cats=d.cats;
+      if(d.qs)   S.qs=d.qs;
+      if(d.timers) S.timers=d.timers;
+      if(d.theme && THEMES[d.theme]) applyTheme(d.theme,false);
+      if(d.title) S.title=d.title;
+      ensureQsForCats();
+      save();
+      updateTitleDisplay();
+      const lbl=document.getElementById('json-loaded-name');
+      lbl.textContent=`✓ "${f.name}" geladen`;
+      lbl.style.display='block';
+      document.getElementById('json-continue-btn').textContent='Weiter →';
+      document.getElementById('json-cache-hint').style.display='none';
+    }catch(_){toast('❌ Fehler beim Laden der JSON-Datei');}
+  };
+  r.readAsText(f);
+  e.target.value='';
 }
 function goCount(){
   document.getElementById('step-theme').style.display='none';
@@ -726,6 +803,8 @@ function buildMediaEl(q){
   }
 
   if(q.type==='video'){
+    const wrapper=document.createElement('div');
+    wrapper.style.cssText='width:100%;display:flex;flex-direction:column;align-items:center;gap:10px';
     const v=document.createElement('video');
     v.className='qvid';
     v.src=q.question;
@@ -737,36 +816,74 @@ function buildMediaEl(q){
       });
       if(dur>0){
         v.addEventListener('timeupdate',()=>{
-          if(v.currentTime>=(start+dur)){v.pause();}
+          if(v.currentTime>=(start+dur)){
+            v.pause();
+            // Fade out and remove video to hide info
+            v.style.transition='opacity .6s';
+            v.style.opacity='0';
+            setTimeout(()=>wrapper.remove(),700);
+          }
         });
       }
     } else {
       v.autoplay=true;
     }
-    return v;
+    // Hide video when it ends naturally
+    v.addEventListener('ended',()=>{
+      v.style.transition='opacity .6s';
+      v.style.opacity='0';
+      setTimeout(()=>wrapper.remove(),700);
+    });
+    wrapper.appendChild(v);
+    return wrapper;
   }
 
-  // audio (non-youtube)
+  // audio (non-youtube) — custom play button only
   const wrap=document.createElement('div');
-  wrap.className='qaud-wrap';
-  wrap.innerHTML='<div style="font-size:3.5rem;margin-bottom:14px">🎵</div><div style="color:var(--silver);font-size:.82rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Audio-Frage</div>';
+  wrap.className='audio-play-wrap';
+  wrap.innerHTML='<div style="font-size:2.8rem;margin-bottom:4px">🎵</div><div class="audio-play-lbl">Audio-Frage</div>';
   const a=document.createElement('audio');
-  a.className='qaud';
   a.src=q.question;
-  a.controls=true;
   if(start>0||dur>0){
     a.addEventListener('loadedmetadata',()=>{
       if(start>0) a.currentTime=start;
-      a.play().catch(()=>{});
     });
     if(dur>0){
       a.addEventListener('timeupdate',()=>{
-        if(a.currentTime>=(start+dur)){a.pause();}
+        if(a.currentTime>=(start+dur)){a.pause();btn.textContent='▶';btn.classList.remove('playing');}
       });
     }
-  } else {
-    a.autoplay=true;
   }
+  const btn=document.createElement('button');
+  btn.className='audio-play-btn';
+  btn.textContent='▶';
+  btn.onclick=()=>{
+    if(a.paused){
+      a.play().catch(()=>{});
+      btn.textContent='⏸';
+      btn.classList.add('playing');
+    } else {
+      a.pause();
+      btn.textContent='▶';
+      btn.classList.remove('playing');
+    }
+  };
+  a.addEventListener('ended',()=>{
+    btn.textContent='▶';
+    btn.classList.remove('playing');
+    if(start>0) a.currentTime=start;
+  });
+  // Autoplay on open
+  a.addEventListener('canplay',()=>{
+    if(a.paused && !a._started){
+      a._started=true;
+      if(start>0) a.currentTime=start;
+      a.play().catch(()=>{});
+      btn.textContent='⏸';
+      btn.classList.add('playing');
+    }
+  },{once:true});
+  wrap.appendChild(btn);
   wrap.appendChild(a);
   return wrap;
 }
@@ -898,6 +1015,28 @@ function closeQ(){
 //  TIMER
 // ════════════════════════════════════════════════════════
 const R=20,C=2*Math.PI*R;
+let _audioCtx=null;
+function getAudioCtx(){
+  if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return _audioCtx;
+}
+function playTimerEndSound(){
+  try{
+    const ctx=getAudioCtx();
+    // Three descending beeps
+    [[0,.18,880],[.22,.18,660],[.44,.25,440]].forEach(([delay,dur,freq])=>{
+      const osc=ctx.createOscillator();
+      const gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.type='sine';
+      osc.frequency.setValueAtTime(freq,ctx.currentTime+delay);
+      gain.gain.setValueAtTime(0.45,ctx.currentTime+delay);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+dur);
+      osc.start(ctx.currentTime+delay);
+      osc.stop(ctx.currentTime+delay+dur+.05);
+    });
+  }catch(_){}
+}
 function startTimer(sec){
   stopTimer();
   S.tval=sec;S.tmax=sec;
@@ -905,7 +1044,11 @@ function startTimer(sec){
   S.tid=setInterval(()=>{
     S.tval--;
     tickUI(S.tval,S.tmax);
-    if(S.tval<=0){stopTimer();document.getElementById('ttxt').textContent='⏰';}
+    if(S.tval<=0){
+      stopTimer();
+      document.getElementById('ttxt').textContent='⏰';
+      playTimerEndSound();
+    }
   },1000);
 }
 function stopTimer(){if(S.tid){clearInterval(S.tid);S.tid=null;}}
@@ -1050,6 +1193,7 @@ function deleteCategory(ci){
   S.qs.splice(ci,1);
   save();
   renderCategoriesTab();
+  renderQuestionsTab();
   toast(`🗑 Kategorie gelöscht`);
 }
 
@@ -1064,6 +1208,7 @@ function addCategory(){
   save();
   document.getElementById('new-cat-name').value='';
   renderCategoriesTab();
+  renderQuestionsTab();
   toast(`✓ "${name}" hinzugefügt`);
 }
 

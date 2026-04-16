@@ -203,7 +203,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 /* confetti */
 .conf{position:fixed;z-index:9998;pointer-events:none;animation:cfall linear forwards}
 @keyframes cfall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
-@keyframes fadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
 
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:var(--bg)}
@@ -214,32 +213,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .audio-play-btn:hover{transform:scale(1.08);box-shadow:0 12px 36px rgba(0,0,0,.5)}
 .audio-play-btn.playing{background:linear-gradient(135deg,#4caf50,#2e7d32)}
 .audio-play-lbl{font-size:.78rem;color:var(--silver);letter-spacing:1px;text-transform:uppercase}
-
-/* volume sliders */
-.vol-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.vol-label{font-size:.78rem;color:var(--silver);min-width:130px}
-.vol-slider{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
-.vol-val{font-size:.78rem;color:var(--goldt);min-width:38px;text-align:right;font-weight:700}
-/* game config */
-.gcfg-count-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-
-/* hide number input spinners */
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-input[type=number]{-moz-appearance:textfield}
-
-/* game config table */
-.gcfg-count-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.gcfg-table{width:100%;border-collapse:collapse}
-.gcfg-table th{font-size:.68rem;color:var(--silver);text-align:left;padding:0 10px 6px;letter-spacing:.5px;text-transform:uppercase;font-weight:700}
-.gcfg-table td{padding:4px 6px 4px 0;vertical-align:middle}
-.gcfg-table td:first-child{font-size:.76rem;color:var(--goldt);font-weight:700;padding-right:14px;white-space:nowrap;width:80px}
-.gcfg-table td input{width:100%}
-.gcfg-table tr+tr td{padding-top:6px}
-
-/* distinct game-restart button */
-.btn-blue{background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff}
-.btn-blue:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(21,101,192,.5)}
 
 input[type="color"]{-webkit-appearance:none;width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;padding:2px;background:none}
 input[type="color"]::-webkit-color-swatch-wrapper{padding:0}
@@ -331,27 +304,14 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
   </div>
 </div>
 
-<!-- ════════════════════════════════ CONFIRM: FRAGEN NEU STARTEN ════════════════════════════════ -->
-<div class="overlay" id="confirm-questions-overlay" style="display:none;z-index:600">
+<!-- ════════════════════════════════ CONFIRM MODAL ════════════════════════════════ -->
+<div class="overlay" id="confirm-overlay" style="display:none;z-index:600">
   <div class="confirm-box">
-    <div class="confirm-icon">↺</div>
-    <div class="confirm-title">Fragen neu starten?</div>
-    <div class="confirm-msg">Alle Punkte und verwendete Fragen werden zurückgesetzt. Teams, Fragen und Kategorien bleiben erhalten.</div>
-    <div class="confirm-btns">
-      <button class="btn btn-gold" onclick="doRestartQuestions()">Ja, zurücksetzen</button>
-      <button class="btn btn-out" onclick="closeConfirm()">Nein</button>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════════════════════════ CONFIRM: SPIEL NEU STARTEN ════════════════════════════════ -->
-<div class="overlay" id="confirm-game-overlay" style="display:none;z-index:600">
-  <div class="confirm-box">
-    <div class="confirm-icon">🔄</div>
+    <div class="confirm-icon">⚠️</div>
     <div class="confirm-title">Spiel neu starten?</div>
-    <div class="confirm-msg">Teams, Punkte und Fortschritte werden zurückgesetzt. Du kannst Teamanzahl und -namen neu festlegen. Fragen und Kategorien bleiben erhalten.</div>
+    <div class="confirm-msg">Alle Punkte und Fortschritte werden zurückgesetzt. Fragen und Kategorien bleiben erhalten.</div>
     <div class="confirm-btns">
-      <button class="btn btn-gold" onclick="doRestartGame()">Ja, neu starten</button>
+      <button class="btn btn-gold" onclick="doRestart()">Ja, neu starten</button>
       <button class="btn btn-out" onclick="closeConfirm()">Nein</button>
     </div>
   </div>
@@ -363,10 +323,10 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
     <div class="admin-hdr">
       <div class="admin-ttl">⚙ Admin Panel</div>
       <div class="admin-acts">
-        <button class="btn btn-blue" onclick="askRestartQuestions()" title="Fragen & Punkte neu starten">↺ Fragen neu starten</button>
-        <button class="btn btn-red" onclick="askRestartGame()" title="Gesamtes Spiel neu starten">🔄 Spiel neu starten</button>
+        <button class="btn btn-red" onclick="askRestart()" title="Spiel neu starten">🔄 Neu starten</button>
         <button class="btn btn-out" onclick="importQ()">📥 Import</button>
         <button class="btn btn-out" onclick="exportQ()">📤 Export</button>
+        <button class="btn btn-gold" onclick="saveAdmin()">💾 Speichern</button>
         <button class="btn btn-red" style="background:rgba(139,0,0,.7)" onclick="hideAdmin()">✕ Schließen</button>
       </div>
     </div>
@@ -379,9 +339,13 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
 
     <!-- FRAGEN TAB -->
     <div class="tab-panel active" id="tab-questions">
-      <div class="global-box" id="game-config-box">
-        <h3>⚙ Spielkonfiguration</h3>
-        <div id="game-config-inner"></div>
+      <div class="global-box">
+        <h3>⏱ Standard-Timer (Sekunden)</h3>
+        <div class="global-inner">
+          <div class="gfield"><label>200 Punkte</label><input class="ainp" type="number" id="t200" value="30" min="5" max="300" placeholder="30"></div>
+          <div class="gfield"><label>500 Punkte</label><input class="ainp" type="number" id="t500" value="45" min="5" max="300" placeholder="45"></div>
+          <div class="gfield"><label>1000 Punkte</label><input class="ainp" type="number" id="t1000" value="60" min="5" max="300" placeholder="60"></div>
+        </div>
       </div>
       <div class="admin-grid" id="admin-grid"></div>
     </div>
@@ -390,7 +354,7 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
     <div class="tab-panel" id="tab-categories">
       <div class="global-box" style="margin-bottom:18px">
         <h3>📋 Hinweis</h3>
-        <div style="font-size:.78rem;color:var(--silver);line-height:1.5">Alle Änderungen werden automatisch gespeichert. Beim Löschen einer Kategorie werden alle zugehörigen Fragen entfernt. Exportiere vorher das JSON um nichts zu verlieren.</div>
+        <div style="font-size:.78rem;color:var(--silver);line-height:1.5">Änderungen an Namen, Emoji und Farbe werden beim <strong style="color:var(--gold)">Speichern</strong> übernommen. Beim Löschen einer Kategorie werden alle zugehörigen Fragen entfernt. Exportiere vorher das JSON um nichts zu verlieren.</div>
       </div>
       <div class="cat-list" id="cat-list"></div>
       <div class="add-cat-box">
@@ -417,11 +381,10 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
             <label>Titel (wird im Quiz angezeigt)</label>
             <input class="ainp" type="text" id="quiz-title-inp" placeholder="Quiz Titel">
           </div>
+          <div class="gfield" style="display:flex;align-items:flex-end">
+            <button class="btn btn-out" onclick="resetTitle()" style="white-space:nowrap;margin-bottom:0">↺ Standard</button>
+          </div>
         </div>
-      </div>
-      <div class="global-box">
-        <h3>🔊 Lautstärke</h3>
-        <div id="volume-sliders"></div>
       </div>
     </div>
   </div>
@@ -433,7 +396,7 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
 //  CONSTANTS & DEFAULTS
 // ════════════════════════════════════════════════════════
 const DEFAULT_CATS = [];
-let PTS = [200,500,1000]; // synced from S.pts
+const PTS = [200,500,1000];
 
 const THEMES = {
   christmas:{
@@ -511,9 +474,7 @@ const S = {
   cats:JSON.parse(JSON.stringify(DEFAULT_CATS)),
   qs:[],
   used:new Set(),
-  pts:[200,500,1000],
-  timers:[30,45,60],
-  volume:{timer:1.0,video:0.5,audio:0.5},
+  timers:[10,20,30],
   cur:null,
   tid:null,tval:0,tmax:30,
   awardedTeams:new Set(),
@@ -524,25 +485,20 @@ const S = {
 // ════════════════════════════════════════════════════════
 //  DATA
 // ════════════════════════════════════════════════════════
-function syncPTS(){ PTS = S.pts.slice(); }
 function defQ(ci,pi){
   return {type:'text',question:'',answer:'',pixelated:false,
           timer:null,startTime:null,duration:null};
 }
 function initQs(){
-  S.qs = S.cats.map((_,ci)=>S.pts.map((_,pi)=>defQ(ci,pi)));
+  S.qs = S.cats.map((_,ci)=>PTS.map((_,pi)=>defQ(ci,pi)));
 }
 function ensureQsForCats(){
+  // Make sure S.qs has an entry for every category
   while(S.qs.length < S.cats.length){
     const ci = S.qs.length;
-    S.qs.push(S.pts.map((_,pi)=>defQ(ci,pi)));
+    S.qs.push(PTS.map((_,pi)=>defQ(ci,pi)));
   }
-  S.qs.length = S.cats.length;
-  // Ensure each category has the right number of question slots
-  S.qs.forEach((col,ci)=>{
-    while(col.length < S.pts.length) col.push(defQ(ci,col.length));
-    col.length = S.pts.length;
-  });
+  S.qs.length = S.cats.length; // trim if cats removed
 }
 
 // ════════════════════════════════════════════════════════
@@ -550,8 +506,7 @@ function ensureQsForCats(){
 // ════════════════════════════════════════════════════════
 function save(){
   localStorage.setItem('xq2',JSON.stringify({
-    qs:S.qs,timers:S.timers,cats:S.cats,theme:S.theme,title:S.title,
-    pts:S.pts,volume:S.volume
+    qs:S.qs,timers:S.timers,cats:S.cats,theme:S.theme,title:S.title
   }));
 }
 function load(){
@@ -561,11 +516,14 @@ function load(){
     if(d.theme && THEMES[d.theme]) S.theme=d.theme;
     if(d.title) S.title=d.title;
     if(d.timers) S.timers=d.timers;
-    if(d.pts && d.pts.length>0) S.pts=d.pts;
-    if(d.volume) S.volume=Object.assign({timer:1.0,video:0.5,audio:0.5},d.volume);
     if(d.cats) S.cats=d.cats;
-    if(d.qs) S.qs=d.qs;
-    syncPTS();
+    if(d.qs){
+      S.qs=d.qs;
+      // Nullify timers that equal defaults (migration)
+      S.qs.forEach((col,ci)=>col.forEach((q,pi)=>{
+        if(q.timer===S.timers[pi]) q.timer=null;
+      }));
+    }
   }catch(_){}
 }
 
@@ -643,7 +601,6 @@ function applyTheme(id,updateTitle){
     c.classList.toggle('selected',c.dataset.tid===id);
     c.classList.toggle('tsel',c.dataset.tid===id);
   });
-  // Update title input in admin if visible
   const ti=document.getElementById('quiz-title-inp');
   if(ti) ti.value=S.title;
 }
@@ -781,7 +738,7 @@ function renderBoard(){
     hr.appendChild(th);
   });
   const tb=t.createTBody();
-  S.pts.forEach((pts,pi)=>{
+  PTS.forEach((pts,pi)=>{
     const row=tb.insertRow();
     S.cats.forEach((cat,ci)=>{
       const key=`${ci}-${pi}`;
@@ -831,12 +788,10 @@ function buildMediaEl(q){
   const id=ytId(q.question);
   const start=parseInt(q.startTime)||0;
   const dur=parseInt(q.duration)||0;
-  const vidVol=Math.round((S.volume.video??0.5)*100);
-  const audVol=S.volume.audio??0.5;
 
   if(id){
-    // YouTube iframe – use enablejsapi + postMessage to set volume
-    let src=`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&start=${start}&enablejsapi=1`;
+    // YouTube iframe embed
+    let src=`https://www.youtube-nocookie.com/embed/${id}?controls=0&disablekb=1&fs=0&start=${start}`;
     if(dur>0) src+=`&end=${start+dur}`;
     src+='&autoplay=1';
     const fr=document.createElement('iframe');
@@ -844,14 +799,6 @@ function buildMediaEl(q){
     fr.src=src;
     fr.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
     fr.allowFullscreen=true;
-    // Set volume after iframe loads
-    fr.addEventListener('load',()=>{
-      setTimeout(()=>{
-        try{
-          fr.contentWindow.postMessage(JSON.stringify({event:'command',func:'setVolume',args:[vidVol]}),'*');
-        }catch(_){}
-      },800);
-    });
     return fr;
   }
 
@@ -862,7 +809,6 @@ function buildMediaEl(q){
     v.className='qvid';
     v.src=q.question;
     v.controls=true;
-    v.volume=S.volume.video??0.5;
     if(start>0||dur>0){
       v.addEventListener('loadedmetadata',()=>{
         if(start>0) v.currentTime=start;
@@ -872,7 +818,9 @@ function buildMediaEl(q){
         v.addEventListener('timeupdate',()=>{
           if(v.currentTime>=(start+dur)){
             v.pause();
-            v.style.transition='opacity .6s';v.style.opacity='0';
+            // Fade out and remove video to hide info
+            v.style.transition='opacity .6s';
+            v.style.opacity='0';
             setTimeout(()=>wrapper.remove(),700);
           }
         });
@@ -880,23 +828,26 @@ function buildMediaEl(q){
     } else {
       v.autoplay=true;
     }
+    // Hide video when it ends naturally
     v.addEventListener('ended',()=>{
-      v.style.transition='opacity .6s';v.style.opacity='0';
+      v.style.transition='opacity .6s';
+      v.style.opacity='0';
       setTimeout(()=>wrapper.remove(),700);
     });
     wrapper.appendChild(v);
     return wrapper;
   }
 
-  // audio — custom play button only
+  // audio (non-youtube) — custom play button only
   const wrap=document.createElement('div');
   wrap.className='audio-play-wrap';
   wrap.innerHTML='<div style="font-size:2.8rem;margin-bottom:4px">🎵</div><div class="audio-play-lbl">Audio-Frage</div>';
   const a=document.createElement('audio');
   a.src=q.question;
-  a.volume=audVol;
   if(start>0||dur>0){
-    a.addEventListener('loadedmetadata',()=>{ if(start>0) a.currentTime=start; });
+    a.addEventListener('loadedmetadata',()=>{
+      if(start>0) a.currentTime=start;
+    });
     if(dur>0){
       a.addEventListener('timeupdate',()=>{
         if(a.currentTime>=(start+dur)){a.pause();btn.textContent='▶';btn.classList.remove('playing');}
@@ -907,19 +858,29 @@ function buildMediaEl(q){
   btn.className='audio-play-btn';
   btn.textContent='▶';
   btn.onclick=()=>{
-    if(a.paused){a.play().catch(()=>{});btn.textContent='⏸';btn.classList.add('playing');}
-    else{a.pause();btn.textContent='▶';btn.classList.remove('playing');}
+    if(a.paused){
+      a.play().catch(()=>{});
+      btn.textContent='⏸';
+      btn.classList.add('playing');
+    } else {
+      a.pause();
+      btn.textContent='▶';
+      btn.classList.remove('playing');
+    }
   };
   a.addEventListener('ended',()=>{
-    btn.textContent='▶';btn.classList.remove('playing');
+    btn.textContent='▶';
+    btn.classList.remove('playing');
     if(start>0) a.currentTime=start;
   });
+  // Autoplay on open
   a.addEventListener('canplay',()=>{
-    if(a.paused&&!a._started){
+    if(a.paused && !a._started){
       a._started=true;
       if(start>0) a.currentTime=start;
       a.play().catch(()=>{});
-      btn.textContent='⏸';btn.classList.add('playing');
+      btn.textContent='⏸';
+      btn.classList.add('playing');
     }
   },{once:true});
   wrap.appendChild(btn);
@@ -969,7 +930,7 @@ function openQ(ci,pi){
   S.cur={ci,pi};
   S.awardedTeams=new Set();
   const cat=S.cats[ci];
-  const pts=S.pts[pi];
+  const pts=PTS[pi];
   const q=(S.qs[ci]&&S.qs[ci][pi])||defQ(ci,pi);
 
   document.getElementById('m-cat').textContent=`${cat.emoji}  ${cat.name}`;
@@ -1014,22 +975,6 @@ function revealAnswer(){
   stopTimer();
   document.getElementById('ans-sec').style.display='block';
   document.getElementById('btn-reveal').disabled=true;
-
-  // De-pixelate image if current question is pixelated
-  if(S.cur){
-    const q=(S.qs[S.cur.ci]&&S.qs[S.cur.ci][S.cur.pi]);
-    if(q && q.type==='image' && q.pixelated && q.question){
-      const body=document.getElementById('m-body');
-      body.innerHTML='';
-      const img=document.createElement('img');
-      img.className='qimg';
-      img.src=q.question;
-      img.alt='';
-      img.style.animation='fadeIn .4s ease';
-      body.appendChild(img);
-    }
-  }
-
   const btns=document.getElementById('award-btns');
   btns.innerHTML='';
   S.teams.forEach((t,i)=>{
@@ -1046,7 +991,7 @@ function revealAnswer(){
 function awardPts(idx,btn){
   if(S.awardedTeams.has(idx)) return;
   S.awardedTeams.add(idx);
-  const pts=S.pts[S.cur.pi];
+  const pts=PTS[S.cur.pi];
   bumpScore(idx,pts);
   btn.classList.add('awarded');
   btn.textContent=`✓ ${S.teams[idx].name}`;
@@ -1077,16 +1022,15 @@ function getAudioCtx(){
 }
 function playTimerEndSound(){
   try{
-    const vol=S.volume.timer??1.0;
-    if(vol===0)return;
     const ctx=getAudioCtx();
+    // Three descending beeps
     [[0,.18,880],[.22,.18,660],[.44,.25,440]].forEach(([delay,dur,freq])=>{
       const osc=ctx.createOscillator();
       const gain=ctx.createGain();
       osc.connect(gain);gain.connect(ctx.destination);
       osc.type='sine';
       osc.frequency.setValueAtTime(freq,ctx.currentTime+delay);
-      gain.gain.setValueAtTime(0.45*vol,ctx.currentTime+delay);
+      gain.gain.setValueAtTime(0.45,ctx.currentTime+delay);
       gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+dur);
       osc.start(ctx.currentTime+delay);
       osc.stop(ctx.currentTime+delay+dur+.05);
@@ -1116,13 +1060,8 @@ function tickUI(v,max){
   fg.style.strokeDasharray=C;
   fg.style.strokeDashoffset=off;
   tx.textContent=Math.max(0,v);
-  // Color thresholds: red = last 20%, orange = last 40%
-  const urgentThreshold=Math.ceil(max*0.2);
-  const warnThreshold=Math.ceil(max*0.4);
-  const isUrgent=v<=urgentThreshold;
-  const isWarn=v<=warnThreshold;
-  fg.style.stroke=isUrgent?'#e74c3c':isWarn?'#f39c12':'var(--gold)';
-  tx.classList.toggle('urgent',isUrgent);
+  fg.style.stroke=v<=10?'#e74c3c':v<=20?'#f39c12':'var(--gold)';
+  tx.classList.toggle('urgent',v<=10);
 }
 
 // ════════════════════════════════════════════════════════
@@ -1144,12 +1083,6 @@ function switchTab(name){
 // ════════════════════════════════════════════════════════
 //  ADMIN – SHOW / HIDE
 // ════════════════════════════════════════════════════════
-let _saveTimer=null;
-function scheduleSave(){
-  if(document.getElementById('admin-screen').style.display==='none') return;
-  clearTimeout(_saveTimer);
-  _saveTimer=setTimeout(()=>saveAdmin(),800);
-}
 function showAdmin(){
   hide('quiz-screen');
   show('admin-screen');
@@ -1158,70 +1091,25 @@ function showAdmin(){
   if(activeTab==='settings') renderSettingsTab();
 }
 function hideAdmin(){
-  clearTimeout(_saveTimer);
-  saveAdmin();
   hide('admin-screen');
   show('quiz-screen');
-  renderBoard();
 }
 
 // ════════════════════════════════════════════════════════
 //  ADMIN – QUESTIONS TAB
 // ════════════════════════════════════════════════════════
-function renderGameConfig(){
-  const box=document.getElementById('game-config-inner');
-  if(!box)return;
-  let html=`<div class="gcfg-count-row">
-    <span class="gcfg-lbl">Fragen pro Kategorie:</span>
-    <input class="ainp" type="number" id="gcfg-count" value="${S.pts.length}" min="1" max="10" style="width:64px" onchange="onQuestionCountChange(this)">
-  </div>
-  <table class="gcfg-table">
-    <thead><tr><th>Frage</th><th>Punkte</th><th>Timer (Sek.)</th></tr></thead>
-    <tbody>`;
-  S.pts.forEach((pts,pi)=>{
-    html+=`<tr>
-      <td>${pi+1}</td>
-      <td><input class="ainp" type="number" id="gcfg-pts-${pi}" value="${pts}" min="10" max="99999" onchange="autoSaveGameConfig()"></td>
-      <td><input class="ainp" type="number" id="timer-inp-${pi}" value="${S.timers[pi]||30}" min="5" max="300" onchange="autoSaveGameConfig()"></td>
-    </tr>`;
-  });
-  html+='</tbody></table>';
-  box.innerHTML=html;
-}
-function onQuestionCountChange(inp){
-  saveGameConfig();
-  const newCount=Math.min(Math.max(parseInt(inp.value)||1,1),10);
-  const oldCount=S.pts.length;
-  if(newCount>oldCount){
-    for(let i=oldCount;i<newCount;i++){
-      const lastPts=S.pts[S.pts.length-1]||200;
-      S.pts.push(Math.round(lastPts*1.5/100)*100||500);
-      S.timers.push(S.timers[S.timers.length-1]||30);
-    }
-  } else {
-    S.pts.length=newCount;
-    S.timers.length=newCount;
-  }
-  syncPTS();
-  ensureQsForCats();
-  save();
-  renderQuestionsTab();
-  toast(`✓ ${newCount} Fragen pro Kategorie`);
-}
-function autoSaveGameConfig(){
-  saveGameConfig();
-  save();
-}
 function renderQuestionsTab(){
-  renderGameConfig();
+  document.getElementById('t200').value=S.timers[0];
+  document.getElementById('t500').value=S.timers[1];
+  document.getElementById('t1000').value=S.timers[2];
   const grid=document.getElementById('admin-grid');
   grid.innerHTML='';
   S.cats.forEach((cat,ci)=>{
-    if(!S.qs[ci]) S.qs[ci]=S.pts.map((_,pi)=>defQ(ci,pi));
+    if(!S.qs[ci]) S.qs[ci]=PTS.map((_,pi)=>defQ(ci,pi));
     const card=document.createElement('div');
     card.className='acard';
     let html=`<div class="acard-hdr"><div class="adot" style="background:${cat.color}"></div><div class="acat">${cat.emoji} ${esc(cat.name)}</div></div>`;
-    S.pts.forEach((pts,pi)=>{
+    PTS.forEach((pts,pi)=>{
       const q=S.qs[ci][pi]||defQ(ci,pi);
       const isMedia=q.type==='video'||q.type==='audio';
       html+=`
@@ -1249,7 +1137,7 @@ function renderQuestionsTab(){
           </div>
         </div>
         <div class="af"><label>Antwort</label><textarea class="ata" id="qa-${ci}-${pi}" placeholder="Antwort …">${esc(q.answer)}</textarea></div>
-        <div class="af"><label>Timer (Sek.) — leer = Standard (${S.timers[pi]||30}s)</label><input class="ainp" type="number" id="qtm-${ci}-${pi}" value="${q.timer||''}" min="5" max="300" placeholder="Standard"></div>
+        <div class="af"><label>Timer (Sek.) — leer = Standard</label><input class="ainp" type="number" id="qtm-${ci}-${pi}" value="${q.timer||''}" min="5" max="300" placeholder="Standard"></div>
       </div>`;
     });
     card.innerHTML=html;
@@ -1300,7 +1188,7 @@ function saveCategoryEdits(){
 }
 
 function deleteCategory(ci){
-  if(!confirm(`Kategorie "${S.cats[ci].name}" und alle ${S.pts.length} zugehörigen Fragen löschen?`)) return;
+  if(!confirm(`Kategorie "${S.cats[ci].name}" und alle ${PTS.length} zugehörigen Fragen löschen?`)) return;
   S.cats.splice(ci,1);
   S.qs.splice(ci,1);
   save();
@@ -1316,7 +1204,7 @@ function addCategory(){
   if(!name){toast('❌ Bitte einen Namen eingeben');return;}
   const ci=S.cats.length;
   S.cats.push({name,emoji,color});
-  S.qs.push(S.pts.map((_,pi)=>defQ(ci,pi)));
+  S.qs.push(PTS.map((_,pi)=>defQ(ci,pi)));
   save();
   document.getElementById('new-cat-name').value='';
   renderCategoriesTab();
@@ -1335,51 +1223,33 @@ function renderSettingsTab(){
     c.className='theme-card'+(S.theme===id?' selected':'');
     c.dataset.tid=id;
     c.innerHTML=`<div class="theme-icon">${t.icon}</div><div class="theme-name">${t.label}</div>`;
-    c.onclick=()=>{ applyTheme(id,true); renderSettingsTab(); };
+    c.onclick=()=>applyTheme(id,false);
     grid.appendChild(c);
   });
   const ti=document.getElementById('quiz-title-inp');
   if(ti) ti.value=S.title;
-  // Volume sliders
-  const vs=document.getElementById('volume-sliders');
-  if(!vs)return;
-  const vols=[
-    {key:'timer',label:'🔔 Timer-Ton',default:1.0},
-    {key:'video',label:'🎬 Video',default:0.5},
-    {key:'audio',label:'🎵 Musik / Audio',default:0.5},
-  ];
-  vs.innerHTML=vols.map(v=>{
-    const pct=Math.round((S.volume[v.key]??v.default)*100);
-    return `<div class="vol-row">
-      <span class="vol-label">${v.label}</span>
-      <input type="range" class="vol-slider" id="vol-${v.key}" min="0" max="100" value="${pct}" oninput="document.getElementById('vol-val-${v.key}').textContent=this.value+'%'">
-      <span class="vol-val" id="vol-val-${v.key}">${pct}%</span>
-    </div>`;
-  }).join('');
 }
 
 // ════════════════════════════════════════════════════════
 //  ADMIN – SAVE / EXPORT / IMPORT
 // ════════════════════════════════════════════════════════
 function saveAdmin(){
-  // Save game config (pts + timers)
-  saveGameConfig();
-  // Save category edits
+  // Save timer defaults
+  S.timers=[
+    parseInt(document.getElementById('t200').value)||30,
+    parseInt(document.getElementById('t500').value)||45,
+    parseInt(document.getElementById('t1000').value)||60,
+  ];
+  // Save category edits (from categories tab)
   saveCategoryEdits();
   // Save title
   const ti=document.getElementById('quiz-title-inp');
   if(ti && ti.value.trim()) S.title=ti.value.trim();
   updateTitleDisplay();
-  // Save volume
-  ['timer','video','audio'].forEach(k=>{
-    const el=document.getElementById(`vol-${k}`);
-    if(el) S.volume[k]=parseInt(el.value)/100;
-  });
   // Save questions
   S.cats.forEach((_,ci)=>{
-    if(!S.qs[ci]) S.qs[ci]=S.pts.map((_,pi)=>defQ(ci,pi));
-    S.pts.forEach((_,pi)=>{
-      if(!S.qs[ci][pi]) S.qs[ci][pi]=defQ(ci,pi);
+    if(!S.qs[ci]) S.qs[ci]=PTS.map((_,pi)=>defQ(ci,pi));
+    PTS.forEach((_,pi)=>{
       const q=S.qs[ci][pi];
       q.type   =document.getElementById(`qt-${ci}-${pi}`)?.value||'text';
       q.question=document.getElementById(`qq-${ci}-${pi}`)?.value||'';
@@ -1395,10 +1265,11 @@ function saveAdmin(){
     });
   });
   save();
+  toast('✓ Gespeichert!');
 }
 
 function exportQ(){
-  const blob=new Blob([JSON.stringify({qs:S.qs,timers:S.timers,pts:S.pts,cats:S.cats,theme:S.theme,title:S.title,volume:S.volume},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({qs:S.qs,timers:S.timers,cats:S.cats,theme:S.theme,title:S.title},null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;a.download='quiz-daten.json';
@@ -1415,11 +1286,8 @@ function handleImport(e){
       if(d.cats) S.cats=d.cats;
       if(d.qs)   S.qs=d.qs;
       if(d.timers) S.timers=d.timers;
-      if(d.pts && d.pts.length>0){ S.pts=d.pts; syncPTS(); }
-      if(d.volume) S.volume=Object.assign({timer:1,video:.5,audio:.5},d.volume);
       if(d.theme && THEMES[d.theme]) applyTheme(d.theme,false);
       if(d.title) S.title=d.title;
-      ensureQsForCats();
       save();
       renderQuestionsTab();
       if(activeTab==='categories') renderCategoriesTab();
@@ -1435,42 +1303,20 @@ function handleImport(e){
 // ════════════════════════════════════════════════════════
 //  GAME RESTART
 // ════════════════════════════════════════════════════════
-function askRestartQuestions(){
-  document.getElementById('confirm-questions-overlay').style.display='flex';
-}
-function askRestartGame(){
-  document.getElementById('confirm-game-overlay').style.display='flex';
+function askRestart(){
+  document.getElementById('confirm-overlay').style.display='flex';
 }
 function closeConfirm(){
-  document.getElementById('confirm-questions-overlay').style.display='none';
-  document.getElementById('confirm-game-overlay').style.display='none';
+  document.getElementById('confirm-overlay').style.display='none';
 }
-function doRestartQuestions(){
+function doRestart(){
   closeConfirm();
+  // Reset game state (keep cats/qs/teams, reset scores and used cells)
   S.used=new Set();
   S.teams.forEach(t=>t.score=0);
-  hide('admin-screen');
-  show('quiz-screen');
   renderBoard();
   renderScores();
-  toast('↺ Fragen zurückgesetzt!');
-}
-function doRestartGame(){
-  closeConfirm();
-  saveAdmin();
-  // Full reset: scores, used cells, teams — go back to theme step
-  S.used=new Set();
-  S.teams=[];
-  hide('admin-screen');
-  hide('quiz-screen');
-  // Reset all setup steps
-  document.getElementById('step-theme').style.display='block';
-  document.getElementById('step-json').style.display='none';
-  document.getElementById('step-count').style.display='none';
-  document.getElementById('step-names').style.display='none';
-  document.getElementById('tc-inp').value=2;
-  renderThemePicker();
-  show('setup-screen');
+  toast('🔄 Spiel neu gestartet!');
 }
 
 // ════════════════════════════════════════════════════════
@@ -1515,17 +1361,11 @@ function confetti(){
 // ════════════════════════════════════════════════════════
 initQs();
 load();
-syncPTS();
 ensureQsForCats();
 applyTheme(S.theme,false);
 updateTitleDisplay();
 renderThemePicker();
 document.getElementById('tc-inp').addEventListener('keydown',e=>{if(e.key==='Enter')goNames();});
-
-// Single delegated auto-save listener for the entire admin screen
-document.getElementById('admin-screen').addEventListener('change', scheduleSave);
-document.getElementById('admin-screen').addEventListener('input', scheduleSave);
-
 show('setup-screen');
 </script>
 </body>

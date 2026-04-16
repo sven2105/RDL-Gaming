@@ -215,6 +215,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .audio-play-lbl{font-size:.78rem;color:var(--silver);letter-spacing:1px;text-transform:uppercase}
 
 input[type="color"]{-webkit-appearance:none;width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;padding:2px;background:none}
+.vol-row{display:flex;flex-direction:column;gap:6px;width:100%}
+.vol-row label{font-size:.72rem;color:var(--silver);display:flex;justify-content:space-between;align-items:center}
+.vol-row label span{color:var(--goldt);font-weight:700;min-width:38px;text-align:right}
+input[type="range"].vol-slider{width:100%;accent-color:var(--gold);cursor:pointer;height:5px;background:rgba(255,255,255,.1);border-radius:4px;outline:none;appearance:none;-webkit-appearance:none}
+input[type="range"].vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+input[type="range"].vol-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;border:none;box-shadow:0 2px 8px rgba(0,0,0,.4)}
 input[type="color"]::-webkit-color-swatch-wrapper{padding:0}
 input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgba(255,255,255,.2)}
 </style>
@@ -386,6 +392,23 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
           </div>
         </div>
       </div>
+      <div class="global-box">
+        <h3>🔊 Lautstärke</h3>
+        <div style="display:flex;flex-direction:column;gap:18px;padding:4px 0">
+          <div class="vol-row">
+            <label>⏱ Timer-Ton <span id="vol-timer-val">100%</span></label>
+            <input type="range" class="vol-slider" id="vol-timer" min="0" max="100" value="100" oninput="document.getElementById('vol-timer-val').textContent=this.value+'%'">
+          </div>
+          <div class="vol-row">
+            <label>🎬 Video-Lautstärke <span id="vol-video-val">50%</span></label>
+            <input type="range" class="vol-slider" id="vol-video" min="0" max="100" value="50" oninput="document.getElementById('vol-video-val').textContent=this.value+'%'">
+          </div>
+          <div class="vol-row">
+            <label>🎵 Musik-Lautstärke <span id="vol-music-val">50%</span></label>
+            <input type="range" class="vol-slider" id="vol-music" min="0" max="100" value="50" oninput="document.getElementById('vol-music-val').textContent=this.value+'%'">
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <input type="file" id="imp-file" accept=".json" style="display:none" onchange="handleImport(event)">
@@ -480,6 +503,9 @@ const S = {
   awardedTeams:new Set(),
   theme:'christmas',
   title:'🎄 Weihnachts Trivia Quiz 🎄',
+  timerVolume:1.0,
+  videoVolume:0.5,
+  musicVolume:0.5,
 };
 
 // ════════════════════════════════════════════════════════
@@ -506,7 +532,8 @@ function ensureQsForCats(){
 // ════════════════════════════════════════════════════════
 function save(){
   localStorage.setItem('xq2',JSON.stringify({
-    qs:S.qs,timers:S.timers,cats:S.cats,theme:S.theme,title:S.title
+    qs:S.qs,timers:S.timers,cats:S.cats,theme:S.theme,title:S.title,
+    timerVolume:S.timerVolume,videoVolume:S.videoVolume,musicVolume:S.musicVolume
   }));
 }
 function load(){
@@ -517,6 +544,9 @@ function load(){
     if(d.title) S.title=d.title;
     if(d.timers) S.timers=d.timers;
     if(d.cats) S.cats=d.cats;
+    if(d.timerVolume!=null) S.timerVolume=d.timerVolume;
+    if(d.videoVolume!=null) S.videoVolume=d.videoVolume;
+    if(d.musicVolume!=null) S.musicVolume=d.musicVolume;
     if(d.qs){
       S.qs=d.qs;
       // Nullify timers that equal defaults (migration)
@@ -791,7 +821,7 @@ function buildMediaEl(q){
 
   if(id){
     // YouTube iframe embed
-    let src=`https://www.youtube-nocookie.com/embed/${id}?controls=0&disablekb=1&fs=0&start=${start}`;
+    let src=`https://www.youtube-nocookie.com/embed/${id}?controls=0&disablekb=1&fs=0&start=${start}&enablejsapi=1`;
     if(dur>0) src+=`&end=${start+dur}`;
     src+='&autoplay=1';
     const fr=document.createElement('iframe');
@@ -799,6 +829,17 @@ function buildMediaEl(q){
     fr.src=src;
     fr.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
     fr.allowFullscreen=true;
+    // Apply volume via postMessage after player loads
+    fr.addEventListener('load',()=>{
+      setTimeout(()=>{
+        try{
+          fr.contentWindow.postMessage(JSON.stringify({
+            event:'command',func:'setVolume',
+            args:[Math.round(Math.max(0,Math.min(1,S.videoVolume))*100)]
+          }),'*');
+        }catch(_){}
+      },1200);
+    });
     return fr;
   }
 
@@ -809,6 +850,7 @@ function buildMediaEl(q){
     v.className='qvid';
     v.src=q.question;
     v.controls=true;
+    v.volume=Math.max(0,Math.min(1,S.videoVolume));
     if(start>0||dur>0){
       v.addEventListener('loadedmetadata',()=>{
         if(start>0) v.currentTime=start;
@@ -844,6 +886,7 @@ function buildMediaEl(q){
   wrap.innerHTML='<div style="font-size:2.8rem;margin-bottom:4px">🎵</div><div class="audio-play-lbl">Audio-Frage</div>';
   const a=document.createElement('audio');
   a.src=q.question;
+  a.volume=Math.max(0,Math.min(1,S.musicVolume));
   if(start>0||dur>0){
     a.addEventListener('loadedmetadata',()=>{
       if(start>0) a.currentTime=start;
@@ -1023,6 +1066,7 @@ function getAudioCtx(){
 function playTimerEndSound(){
   try{
     const ctx=getAudioCtx();
+    const vol=Math.max(0,Math.min(1,S.timerVolume));
     // Three descending beeps
     [[0,.18,880],[.22,.18,660],[.44,.25,440]].forEach(([delay,dur,freq])=>{
       const osc=ctx.createOscillator();
@@ -1030,7 +1074,7 @@ function playTimerEndSound(){
       osc.connect(gain);gain.connect(ctx.destination);
       osc.type='sine';
       osc.frequency.setValueAtTime(freq,ctx.currentTime+delay);
-      gain.gain.setValueAtTime(0.45,ctx.currentTime+delay);
+      gain.gain.setValueAtTime(0.45*vol,ctx.currentTime+delay);
       gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+dur);
       osc.start(ctx.currentTime+delay);
       osc.stop(ctx.currentTime+delay+dur+.05);
@@ -1228,6 +1272,14 @@ function renderSettingsTab(){
   });
   const ti=document.getElementById('quiz-title-inp');
   if(ti) ti.value=S.title;
+  // Sync volume sliders
+  [['timer',S.timerVolume],['video',S.videoVolume],['music',S.musicVolume]].forEach(([k,v])=>{
+    const pct=Math.round(v*100);
+    const sl=document.getElementById(`vol-${k}`);
+    const lbl=document.getElementById(`vol-${k}-val`);
+    if(sl) sl.value=pct;
+    if(lbl) lbl.textContent=pct+'%';
+  });
 }
 
 // ════════════════════════════════════════════════════════
@@ -1240,6 +1292,13 @@ function saveAdmin(){
     parseInt(document.getElementById('t500').value)||45,
     parseInt(document.getElementById('t1000').value)||60,
   ];
+  // Save volume settings
+  const vt=document.getElementById('vol-timer');
+  const vv=document.getElementById('vol-video');
+  const vm=document.getElementById('vol-music');
+  if(vt) S.timerVolume=parseInt(vt.value)/100;
+  if(vv) S.videoVolume=parseInt(vv.value)/100;
+  if(vm) S.musicVolume=parseInt(vm.value)/100;
   // Save category edits (from categories tab)
   saveCategoryEdits();
   // Save title

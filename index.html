@@ -218,9 +218,11 @@ input[type="color"]{-webkit-appearance:none;width:32px;height:32px;border:none;b
 .vol-row{display:flex;flex-direction:column;gap:6px;width:100%}
 .vol-row label{font-size:.72rem;color:var(--silver);display:flex;justify-content:space-between;align-items:center}
 .vol-row label span{color:var(--goldt);font-weight:700;min-width:38px;text-align:right}
-input[type="range"].vol-slider{width:100%;accent-color:var(--gold);cursor:pointer;height:5px;background:rgba(255,255,255,.1);border-radius:4px;outline:none;appearance:none;-webkit-appearance:none}
-input[type="range"].vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)}
-input[type="range"].vol-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;border:none;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+input[type="range"].vol-slider{width:100%;cursor:pointer;height:6px;border-radius:4px;outline:none;appearance:none;-webkit-appearance:none;background:linear-gradient(to right,var(--gold) 0%,var(--gold) 100%,rgba(255,255,255,.12) 100%);transition:background .1s}
+input[type="range"].vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.5);border:2px solid rgba(255,255,255,.25)}
+input[type="range"].vol-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid rgba(255,255,255,.25);box-shadow:0 2px 8px rgba(0,0,0,.5)}
+input[type="range"].vol-slider::-moz-range-track{height:6px;border-radius:4px;background:rgba(255,255,255,.12)}
+input[type="range"].vol-slider::-moz-range-progress{height:6px;border-radius:4px;background:var(--gold)}
 input[type="color"]::-webkit-color-swatch-wrapper{padding:0}
 input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgba(255,255,255,.2)}
 </style>
@@ -397,15 +399,15 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
         <div style="display:flex;flex-direction:column;gap:18px;padding:4px 0">
           <div class="vol-row">
             <label>⏱ Timer-Ton <span id="vol-timer-val">100%</span></label>
-            <input type="range" class="vol-slider" id="vol-timer" min="0" max="100" value="100" oninput="document.getElementById('vol-timer-val').textContent=this.value+'%'">
+            <input type="range" class="vol-slider" id="vol-timer" min="0" max="100" value="100" oninput="document.getElementById('vol-timer-val').textContent=this.value+'%';updateVolFill(this)">
           </div>
           <div class="vol-row">
             <label>🎬 Video-Lautstärke <span id="vol-video-val">50%</span></label>
-            <input type="range" class="vol-slider" id="vol-video" min="0" max="100" value="50" oninput="document.getElementById('vol-video-val').textContent=this.value+'%'">
+            <input type="range" class="vol-slider" id="vol-video" min="0" max="100" value="50" oninput="document.getElementById('vol-video-val').textContent=this.value+'%';updateVolFill(this)">
           </div>
           <div class="vol-row">
             <label>🎵 Musik-Lautstärke <span id="vol-music-val">50%</span></label>
-            <input type="range" class="vol-slider" id="vol-music" min="0" max="100" value="50" oninput="document.getElementById('vol-music-val').textContent=this.value+'%'">
+            <input type="range" class="vol-slider" id="vol-music" min="0" max="100" value="50" oninput="document.getElementById('vol-music-val').textContent=this.value+'%';updateVolFill(this)">
           </div>
         </div>
       </div>
@@ -633,6 +635,8 @@ function applyTheme(id,updateTitle){
   });
   const ti=document.getElementById('quiz-title-inp');
   if(ti) ti.value=S.title;
+  // Refresh volume slider fill colours
+  document.querySelectorAll('input.vol-slider').forEach(sl=>updateVolFill(sl));
 }
 function updateTitleDisplay(){
   const h=document.getElementById('qhdr-title');
@@ -1259,6 +1263,10 @@ function addCategory(){
 // ════════════════════════════════════════════════════════
 //  ADMIN – SETTINGS TAB
 // ════════════════════════════════════════════════════════
+function updateVolFill(el){
+  const pct=(el.value-el.min)/(el.max-el.min)*100;
+  el.style.background=`linear-gradient(to right,var(--gold) 0%,var(--gold) ${pct}%,rgba(255,255,255,.12) ${pct}%)`;
+}
 function renderSettingsTab(){
   const grid=document.getElementById('theme-grid');
   grid.innerHTML='';
@@ -1277,7 +1285,7 @@ function renderSettingsTab(){
     const pct=Math.round(v*100);
     const sl=document.getElementById(`vol-${k}`);
     const lbl=document.getElementById(`vol-${k}-val`);
-    if(sl) sl.value=pct;
+    if(sl){sl.value=pct;updateVolFill(sl);}
     if(lbl) lbl.textContent=pct+'%';
   });
 }

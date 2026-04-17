@@ -389,9 +389,7 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
             <label>Titel (wird im Quiz angezeigt)</label>
             <input class="ainp" type="text" id="quiz-title-inp" placeholder="Quiz Titel">
           </div>
-          <div class="gfield" style="display:flex;align-items:flex-end">
-            <button class="btn btn-out" onclick="resetTitle()" style="white-space:nowrap;margin-bottom:0">↺ Standard</button>
-          </div>
+
         </div>
       </div>
       <div class="global-box">
@@ -1275,7 +1273,7 @@ function renderSettingsTab(){
     c.className='theme-card'+(S.theme===id?' selected':'');
     c.dataset.tid=id;
     c.innerHTML=`<div class="theme-icon">${t.icon}</div><div class="theme-name">${t.label}</div>`;
-    c.onclick=()=>applyTheme(id,false);
+    c.onclick=()=>applyTheme(id,true);
     grid.appendChild(c);
   });
   const ti=document.getElementById('quiz-title-inp');

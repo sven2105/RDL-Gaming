@@ -1025,6 +1025,22 @@ function revealAnswer(){
   stopTimer();
   document.getElementById('ans-sec').style.display='block';
   document.getElementById('btn-reveal').disabled=true;
+  // If current question is a pixelated image, swap to the original
+  if(S.cur){
+    const q=(S.qs[S.cur.ci]&&S.qs[S.cur.ci][S.cur.pi])||defQ(S.cur.ci,S.cur.pi);
+    if(q.type==='image'&&q.pixelated&&q.question){
+      const body=document.getElementById('m-body');
+      body.innerHTML='';
+      const img=document.createElement('img');
+      img.className='qimg';
+      img.src=q.question;
+      img.alt='';
+      img.style.transition='opacity .4s';
+      img.style.opacity='0';
+      body.appendChild(img);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{img.style.opacity='1';}));
+    }
+  }
   const btns=document.getElementById('award-btns');
   btns.innerHTML='';
   S.teams.forEach((t,i)=>{

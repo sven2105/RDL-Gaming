@@ -186,7 +186,18 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .cat-add-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(212,168,67,.35)}
 .cat-warning{font-size:.72rem;color:#ff8c5a;margin-top:6px;padding:8px 12px;background:rgba(255,100,0,.1);border-radius:8px;border-left:3px solid #ff6422}
 
-/* settings tab */
+/* question structure editor */
+.qs-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(212,168,67,.18);border-radius:10px;padding:10px 14px;flex-wrap:wrap}
+.qs-idx{font-family:'Mountains of Christmas',cursive;font-size:1.1rem;color:var(--gold);min-width:22px;text-align:center}
+.qs-field{display:flex;flex-direction:column;gap:3px;flex:1;min-width:80px}
+.qs-field label{font-size:.63rem;color:var(--silver);text-transform:uppercase;letter-spacing:.5px}
+.qs-del{background:rgba(192,57,43,.2);border:1px solid rgba(192,57,43,.4);color:#ff6b5b;padding:5px 10px;border-radius:16px;cursor:pointer;font-size:.72rem;font-family:'Nunito',sans-serif;font-weight:700;transition:all .2s;flex-shrink:0}
+.qs-del:hover{background:rgba(192,57,43,.4)}
+.qs-add{background:linear-gradient(135deg,var(--gold),#a0720a);color:var(--bg);border:none;border-radius:18px;padding:7px 16px;font-size:.8rem;font-weight:900;font-family:'Nunito',sans-serif;cursor:pointer;transition:all .2s}
+.qs-add:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(212,168,67,.35)}
+.qs-apply{background:linear-gradient(135deg,#2e7d32,#1a4f1e);color:#90ee90;border:none;border-radius:18px;padding:7px 16px;font-size:.8rem;font-weight:900;font-family:'Nunito',sans-serif;cursor:pointer;transition:all .2s;margin-left:auto}
+.qs-apply:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.qs-warn{font-size:.72rem;color:#ff8c5a;margin-top:6px;padding:8px 12px;background:rgba(255,100,0,.1);border-radius:8px;border-left:3px solid #ff6422}
 .settings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:20px}
 .theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px}
 .theme-card{background:rgba(255,255,255,.04);border:2px solid rgba(212,168,67,.2);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all .2s}
@@ -350,13 +361,8 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
 
     <!-- FRAGEN TAB -->
     <div class="tab-panel active" id="tab-questions">
-      <div class="global-box">
-        <h3>⏱ Standard-Timer (Sekunden)</h3>
-        <div class="global-inner">
-          <div class="gfield"><label>200 Punkte</label><input class="ainp" type="number" id="t200" value="30" min="5" max="300" placeholder="30"></div>
-          <div class="gfield"><label>500 Punkte</label><input class="ainp" type="number" id="t500" value="45" min="5" max="300" placeholder="45"></div>
-          <div class="gfield"><label>1000 Punkte</label><input class="ainp" type="number" id="t1000" value="60" min="5" max="300" placeholder="60"></div>
-        </div>
+      <div class="global-box" id="fragenstruktur-box">
+        <!-- dynamisch befüllt von renderQuestionsTab() -->
       </div>
       <div class="admin-grid" id="admin-grid"></div>
     </div>
@@ -422,7 +428,8 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
 //  CONSTANTS & DEFAULTS
 // ════════════════════════════════════════════════════════
 const DEFAULT_CATS = [];
-const PTS = [200,500,1000];
+// PTS is now dynamic – always mirrors S.pts
+let PTS = [200,500,1000];
 
 const THEMES = {
   christmas:{
@@ -500,7 +507,8 @@ const S = {
   cats:JSON.parse(JSON.stringify(DEFAULT_CATS)),
   qs:[],
   used:new Set(),
-  timers:[10,20,30],
+  pts:[200,500,1000],
+  timers:[30,45,60],
   cur:null,
   tid:null,tval:0,tmax:30,
   awardedTeams:new Set(),
@@ -514,20 +522,28 @@ const S = {
 // ════════════════════════════════════════════════════════
 //  DATA
 // ════════════════════════════════════════════════════════
+function syncPTS(){ PTS=S.pts; }
 function defQ(ci,pi){
   return {type:'text',question:'',answer:'',pixelated:false,
           timer:null,startTime:null,duration:null};
 }
 function initQs(){
-  S.qs = S.cats.map((_,ci)=>PTS.map((_,pi)=>defQ(ci,pi)));
+  syncPTS();
+  S.qs = S.cats.map((_,ci)=>S.pts.map((_,pi)=>defQ(ci,pi)));
 }
 function ensureQsForCats(){
+  syncPTS();
   // Make sure S.qs has an entry for every category
   while(S.qs.length < S.cats.length){
     const ci = S.qs.length;
-    S.qs.push(PTS.map((_,pi)=>defQ(ci,pi)));
+    S.qs.push(S.pts.map((_,pi)=>defQ(ci,pi)));
   }
   S.qs.length = S.cats.length; // trim if cats removed
+  // Make sure each category has the right number of question slots
+  S.qs.forEach((col,ci)=>{
+    while(col.length < S.pts.length) col.push(defQ(ci,col.length));
+    col.length = S.pts.length;
+  });
 }
 
 // ════════════════════════════════════════════════════════
@@ -536,6 +552,7 @@ function ensureQsForCats(){
 function save(){
   localStorage.setItem('xq2',JSON.stringify({
     qs:S.qs,timers:S.timers,cats:S.cats,theme:S.theme,title:S.title,
+    pts:S.pts,
     timerVolume:S.timerVolume,videoVolume:S.videoVolume,musicVolume:S.musicVolume
   }));
 }
@@ -545,11 +562,16 @@ function load(){
     if(!d)return;
     if(d.theme && THEMES[d.theme]) S.theme=d.theme;
     if(d.title) S.title=d.title;
-    if(d.timers) S.timers=d.timers;
+    if(d.pts && Array.isArray(d.pts) && d.pts.length>0) S.pts=d.pts;
+    if(d.timers && d.timers.length===S.pts.length) S.timers=d.timers;
+    else if(d.timers){ // migrate: resize timers array to match pts
+      S.timers=S.pts.map((_,i)=>d.timers[i]||30);
+    }
     if(d.cats) S.cats=d.cats;
     if(d.timerVolume!=null) S.timerVolume=d.timerVolume;
     if(d.videoVolume!=null) S.videoVolume=d.videoVolume;
     if(d.musicVolume!=null) S.musicVolume=d.musicVolume;
+    syncPTS();
     if(d.qs){
       S.qs=d.qs;
       // Nullify timers that equal defaults (migration)
@@ -711,7 +733,9 @@ function handleJsonUpload(e){
       const d=JSON.parse(ev.target.result);
       if(d.cats) S.cats=d.cats;
       if(d.qs)   S.qs=d.qs;
-      if(d.timers) S.timers=d.timers;
+      if(d.pts && Array.isArray(d.pts) && d.pts.length>0){ S.pts=d.pts; syncPTS(); }
+      if(d.timers && d.timers.length===S.pts.length) S.timers=d.timers;
+      else if(d.timers) S.timers=S.pts.map((_,i)=>d.timers[i]||30);
       if(d.theme && THEMES[d.theme]) applyTheme(d.theme,false);
       if(d.title) S.title=d.title;
       ensureQsForCats();
@@ -775,7 +799,7 @@ function renderBoard(){
     hr.appendChild(th);
   });
   const tb=t.createTBody();
-  PTS.forEach((pts,pi)=>{
+  S.pts.forEach((pts,pi)=>{
     const row=tb.insertRow();
     S.cats.forEach((cat,ci)=>{
       const key=`${ci}-${pi}`;
@@ -980,7 +1004,7 @@ function openQ(ci,pi){
   S.cur={ci,pi};
   S.awardedTeams=new Set();
   const cat=S.cats[ci];
-  const pts=PTS[pi];
+  const pts=S.pts[pi];
   const q=(S.qs[ci]&&S.qs[ci][pi])||defQ(ci,pi);
 
   document.getElementById('m-cat').textContent=`${cat.emoji}  ${cat.name}`;
@@ -1057,7 +1081,7 @@ function revealAnswer(){
 function awardPts(idx,btn){
   if(S.awardedTeams.has(idx)) return;
   S.awardedTeams.add(idx);
-  const pts=PTS[S.cur.pi];
+  const pts=S.pts[S.cur.pi];
   bumpScore(idx,pts);
   btn.classList.add('awarded');
   btn.textContent=`✓ ${S.teams[idx].name}`;
@@ -1167,17 +1191,47 @@ function hideAdmin(){
 //  ADMIN – QUESTIONS TAB
 // ════════════════════════════════════════════════════════
 function renderQuestionsTab(){
-  document.getElementById('t200').value=S.timers[0];
-  document.getElementById('t500').value=S.timers[1];
-  document.getElementById('t1000').value=S.timers[2];
+  syncPTS();
+  // ── Fragenstruktur Box ──
+  const box=document.getElementById('fragenstruktur-box');
+  let structHtml=`
+    <h3 style="margin-bottom:14px">🎯 Fragenstruktur pro Kategorie</h3>
+    <div style="font-size:.74rem;color:var(--silver);margin-bottom:14px;line-height:1.5">
+      Lege fest, wie viele Fragen jede Kategorie hat und welche Punkte- und Timerwerte gelten.
+      <strong style="color:var(--gold)">Anwenden</strong> übernimmt Änderungen sofort (fehlende Fragen werden leer angelegt, überschüssige gelöscht).
+    </div>
+    <div id="qs-rows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">`;
+  S.pts.forEach((pts,pi)=>{
+    const timer=S.timers[pi]||30;
+    structHtml+=`
+      <div class="qs-row" id="qsr-${pi}">
+        <span class="qs-idx">${pi+1}</span>
+        <div class="qs-field"><label>Punkte</label><input class="ainp" type="number" id="qsp-${pi}" value="${pts}" min="1" max="99999" style="width:90px"></div>
+        <div class="qs-field"><label>Standard-Timer (Sek.)</label><input class="ainp" type="number" id="qst-def-${pi}" value="${timer}" min="5" max="600" style="width:80px"></div>
+        <button class="qs-del" onclick="removeQLevel(${pi})" title="Diese Frage-Stufe löschen">🗑</button>
+      </div>`;
+  });
+  structHtml+=`</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="qs-add" onclick="addQLevel()">+ Stufe hinzufügen</button>
+      <button class="qs-apply" onclick="applyQStructure()">✔ Anwenden & Aktualisieren</button>
+      ${S.pts.length===0?'<div class="qs-warn">⚠ Mindestens eine Frage-Stufe wird benötigt.</div>':''}
+    </div>`;
+  box.innerHTML=structHtml;
+
+  // ── Fragen Grid ──
   const grid=document.getElementById('admin-grid');
   grid.innerHTML='';
+  if(S.pts.length===0){
+    grid.innerHTML='<div style="color:var(--silver);font-size:.82rem;padding:12px">Keine Frage-Stufen definiert. Füge oben mindestens eine Stufe hinzu.</div>';
+    return;
+  }
   S.cats.forEach((cat,ci)=>{
-    if(!S.qs[ci]) S.qs[ci]=PTS.map((_,pi)=>defQ(ci,pi));
+    if(!S.qs[ci]) S.qs[ci]=S.pts.map((_,pi)=>defQ(ci,pi));
     const card=document.createElement('div');
     card.className='acard';
     let html=`<div class="acard-hdr"><div class="adot" style="background:${cat.color}"></div><div class="acat">${cat.emoji} ${esc(cat.name)}</div></div>`;
-    PTS.forEach((pts,pi)=>{
+    S.pts.forEach((pts,pi)=>{
       const q=S.qs[ci][pi]||defQ(ci,pi);
       const isMedia=q.type==='video'||q.type==='audio';
       html+=`
@@ -1205,7 +1259,7 @@ function renderQuestionsTab(){
           </div>
         </div>
         <div class="af"><label>Antwort</label><textarea class="ata" id="qa-${ci}-${pi}" placeholder="Antwort …">${esc(q.answer)}</textarea></div>
-        <div class="af"><label>Timer (Sek.) — leer = Standard</label><input class="ainp" type="number" id="qtm-${ci}-${pi}" value="${q.timer||''}" min="5" max="300" placeholder="Standard"></div>
+        <div class="af"><label>Timer (Sek.) — leer = Standard (${S.timers[pi]||30}s)</label><input class="ainp" type="number" id="qtm-${ci}-${pi}" value="${q.timer||''}" min="5" max="600" placeholder="Standard"></div>
       </div>`;
     });
     card.innerHTML=html;
@@ -1223,7 +1277,91 @@ function onTC(ci,pi){
 }
 
 // ════════════════════════════════════════════════════════
-//  ADMIN – CATEGORIES TAB
+//  ADMIN – QUESTION STRUCTURE MANAGEMENT
+// ════════════════════════════════════════════════════════
+function applyQStructure(){
+  // Read current pts+timers from inputs before applying
+  const newPts=[];const newTimers=[];
+  let valid=true;
+  S.pts.forEach((_,pi)=>{
+    const pEl=document.getElementById(`qsp-${pi}`);
+    const tEl=document.getElementById(`qst-def-${pi}`);
+    if(!pEl||!tEl){valid=false;return;}
+    const pv=parseInt(pEl.value);
+    const tv=parseInt(tEl.value);
+    if(isNaN(pv)||pv<1){toast('❌ Ungültiger Punktewert');valid=false;return;}
+    if(isNaN(tv)||tv<5){toast('❌ Ungültiger Timer-Wert (min. 5s)');valid=false;return;}
+    newPts.push(pv);
+    newTimers.push(tv);
+  });
+  if(!valid) return;
+  if(newPts.length===0){toast('❌ Mindestens eine Frage-Stufe erforderlich');return;}
+  // Save current question content before restructuring
+  saveQContent();
+  // Resize each category's question array
+  S.qs.forEach((col,ci)=>{
+    while(col.length<newPts.length) col.push(defQ(ci,col.length));
+    col.length=newPts.length;
+  });
+  S.pts=newPts;
+  S.timers=newTimers;
+  syncPTS();
+  save();
+  renderQuestionsTab();
+  toast('✔ Fragenstruktur aktualisiert!');
+}
+function addQLevel(){
+  // Read current values first
+  const cur=[];const curT=[];
+  S.pts.forEach((_,pi)=>{
+    const pEl=document.getElementById(`qsp-${pi}`);
+    const tEl=document.getElementById(`qst-def-${pi}`);
+    cur.push(pEl?parseInt(pEl.value)||S.pts[pi]:S.pts[pi]);
+    curT.push(tEl?parseInt(tEl.value)||S.timers[pi]:S.timers[pi]);
+  });
+  if(cur.length>0){S.pts=cur;S.timers=curT;}
+  // Suggest next point value
+  const lastPts=S.pts.length>0?S.pts[S.pts.length-1]:0;
+  const step=S.pts.length>1?S.pts[S.pts.length-1]-S.pts[S.pts.length-2]:500;
+  S.pts.push(lastPts+Math.max(step,100));
+  S.timers.push(Math.min((S.timers[S.timers.length-1]||30)+15,300));
+  syncPTS();
+  S.qs.forEach((col,ci)=>col.push(defQ(ci,col.length)));
+  save();
+  renderQuestionsTab();
+}
+function removeQLevel(pi){
+  if(S.pts.length<=1){toast('❌ Mindestens eine Stufe muss verbleiben');return;}
+  if(!confirm(`Stufe "${S.pts[pi]} Punkte" und alle zugehörigen Fragen löschen?`)) return;
+  S.pts.splice(pi,1);
+  S.timers.splice(pi,1);
+  syncPTS();
+  S.qs.forEach(col=>col.splice(pi,1));
+  save();
+  renderQuestionsTab();
+  toast('🗑 Stufe gelöscht');
+}
+// Save question content from DOM without re-rendering
+function saveQContent(){
+  S.cats.forEach((_,ci)=>{
+    if(!S.qs[ci]) S.qs[ci]=S.pts.map((_,pi)=>defQ(ci,pi));
+    S.pts.forEach((_,pi)=>{
+      const q=S.qs[ci][pi];if(!q)return;
+      const tyEl=document.getElementById(`qt-${ci}-${pi}`);if(!tyEl)return;
+      q.type   =tyEl.value||'text';
+      q.question=document.getElementById(`qq-${ci}-${pi}`)?.value||'';
+      q.answer  =document.getElementById(`qa-${ci}-${pi}`)?.value||'';
+      const tv  =document.getElementById(`qtm-${ci}-${pi}`)?.value;
+      q.timer   =tv?parseInt(tv):null;
+      const pc  =document.getElementById(`qpx-${ci}-${pi}`);
+      q.pixelated=pc?pc.checked:false;
+      const st  =document.getElementById(`qst-${ci}-${pi}`)?.value;
+      const dur =document.getElementById(`qdur-${ci}-${pi}`)?.value;
+      q.startTime=st?parseInt(st):null;
+      q.duration =dur?parseInt(dur):null;
+    });
+  });
+}
 // ════════════════════════════════════════════════════════
 function renderCategoriesTab(){
   const list=document.getElementById('cat-list');
@@ -1256,7 +1394,7 @@ function saveCategoryEdits(){
 }
 
 function deleteCategory(ci){
-  if(!confirm(`Kategorie "${S.cats[ci].name}" und alle ${PTS.length} zugehörigen Fragen löschen?`)) return;
+  if(!confirm(`Kategorie "${S.cats[ci].name}" und alle ${S.pts.length} zugehörigen Fragen löschen?`)) return;
   S.cats.splice(ci,1);
   S.qs.splice(ci,1);
   save();
@@ -1272,7 +1410,7 @@ function addCategory(){
   if(!name){toast('❌ Bitte einen Namen eingeben');return;}
   const ci=S.cats.length;
   S.cats.push({name,emoji,color});
-  S.qs.push(PTS.map((_,pi)=>defQ(ci,pi)));
+  S.qs.push(S.pts.map((_,pi)=>defQ(ci,pi)));
   save();
   document.getElementById('new-cat-name').value='';
   renderCategoriesTab();
@@ -1314,12 +1452,16 @@ function renderSettingsTab(){
 //  ADMIN – SAVE / EXPORT / IMPORT
 // ════════════════════════════════════════════════════════
 function saveAdmin(){
-  // Save timer defaults
-  S.timers=[
-    parseInt(document.getElementById('t200').value)||30,
-    parseInt(document.getElementById('t500').value)||45,
-    parseInt(document.getElementById('t1000').value)||60,
-  ];
+  // Save structure inputs (pts + timers) from the UI rows
+  const newPts=[],newTimers=[];
+  S.pts.forEach((_,pi)=>{
+    const pEl=document.getElementById(`qsp-${pi}`);
+    const tEl=document.getElementById(`qst-def-${pi}`);
+    if(pEl) newPts.push(parseInt(pEl.value)||S.pts[pi]);
+    if(tEl) newTimers.push(parseInt(tEl.value)||S.timers[pi]);
+  });
+  if(newPts.length>0){ S.pts=newPts; syncPTS(); }
+  if(newTimers.length>0) S.timers=newTimers;
   // Save volume settings
   const vt=document.getElementById('vol-timer');
   const vv=document.getElementById('vol-video');
@@ -1333,30 +1475,14 @@ function saveAdmin(){
   const ti=document.getElementById('quiz-title-inp');
   if(ti && ti.value.trim()) S.title=ti.value.trim();
   updateTitleDisplay();
-  // Save questions
-  S.cats.forEach((_,ci)=>{
-    if(!S.qs[ci]) S.qs[ci]=PTS.map((_,pi)=>defQ(ci,pi));
-    PTS.forEach((_,pi)=>{
-      const q=S.qs[ci][pi];
-      q.type   =document.getElementById(`qt-${ci}-${pi}`)?.value||'text';
-      q.question=document.getElementById(`qq-${ci}-${pi}`)?.value||'';
-      q.answer  =document.getElementById(`qa-${ci}-${pi}`)?.value||'';
-      const tv  =document.getElementById(`qtm-${ci}-${pi}`)?.value;
-      q.timer   =tv?parseInt(tv):null;
-      const pc  =document.getElementById(`qpx-${ci}-${pi}`);
-      q.pixelated=pc?pc.checked:false;
-      const st  =document.getElementById(`qst-${ci}-${pi}`)?.value;
-      const dur =document.getElementById(`qdur-${ci}-${pi}`)?.value;
-      q.startTime=st?parseInt(st):null;
-      q.duration =dur?parseInt(dur):null;
-    });
-  });
+  // Save questions content
+  saveQContent();
   save();
   toast('✓ Gespeichert!');
 }
 
 function exportQ(){
-  const blob=new Blob([JSON.stringify({qs:S.qs,timers:S.timers,cats:S.cats,theme:S.theme,title:S.title},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({qs:S.qs,timers:S.timers,pts:S.pts,cats:S.cats,theme:S.theme,title:S.title},null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;a.download='quiz-daten.json';
@@ -1372,7 +1498,10 @@ function handleImport(e){
       const d=JSON.parse(ev.target.result);
       if(d.cats) S.cats=d.cats;
       if(d.qs)   S.qs=d.qs;
-      if(d.timers) S.timers=d.timers;
+      if(d.pts && Array.isArray(d.pts) && d.pts.length>0){ S.pts=d.pts; syncPTS(); }
+      if(d.timers && d.timers.length===S.pts.length) S.timers=d.timers;
+      else if(d.timers) S.timers=S.pts.map((_,i)=>d.timers[i]||30);
+      ensureQsForCats();
       if(d.theme && THEMES[d.theme]) applyTheme(d.theme,false);
       if(d.title) S.title=d.title;
       save();
@@ -1448,6 +1577,7 @@ function confetti(){
 // ════════════════════════════════════════════════════════
 initQs();
 load();
+syncPTS();
 ensureQsForCats();
 applyTheme(S.theme,false);
 updateTitleDisplay();

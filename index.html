@@ -219,6 +219,27 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .conf{position:fixed;z-index:9998;pointer-events:none;animation:cfall linear forwards}
 @keyframes cfall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
 
+/* ── MULTIPLIER OVERLAY ── */
+#mult-overlay{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);animation:mfadein .35s ease forwards}
+@keyframes mfadein{from{opacity:0}to{opacity:1}}
+#mult-overlay.out{animation:mfadeout .5s ease forwards}
+@keyframes mfadeout{from{opacity:1}to{opacity:0}}
+.mult-box{text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;animation:mpop .5s cubic-bezier(.17,.89,.32,1.28) forwards}
+@keyframes mpop{from{transform:scale(.4) rotate(-6deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
+.mult-icon{font-size:4rem;animation:mspin 1.2s ease-in-out infinite alternate}
+@keyframes mspin{from{transform:rotate(-10deg) scale(1)}to{transform:rotate(10deg) scale(1.15)}}
+.mult-label{font-size:.85rem;color:var(--silver);text-transform:uppercase;letter-spacing:3px;font-family:'Nunito',sans-serif;font-weight:700}
+.mult-factor{font-family:'Mountains of Christmas',cursive;font-size:7rem;line-height:1;color:var(--gold);text-shadow:0 0 60px rgba(212,168,67,.9),0 0 120px rgba(212,168,67,.5);animation:mpulse 1s ease-in-out infinite alternate}
+@keyframes mpulse{from{text-shadow:0 0 40px rgba(212,168,67,.7),0 0 80px rgba(212,168,67,.3)}to{text-shadow:0 0 80px rgba(212,168,67,1),0 0 160px rgba(212,168,67,.7)}}
+.mult-subtitle{font-size:1rem;color:var(--cream);font-family:'Nunito',sans-serif;font-weight:700;padding:8px 24px;background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.35);border-radius:30px}
+.mult-total{font-size:.8rem;color:var(--silver);font-family:'Nunito',sans-serif;margin-top:4px}
+/* ── MULTIPLIER ADMIN ── */
+.mult-row{background:rgba(255,255,255,.04);border:1px solid rgba(212,168,67,.18);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mult-row .mf{display:flex;flex-direction:column;gap:3px;flex:1;min-width:80px}
+.mult-row .mf label{font-size:.63rem;color:var(--silver);text-transform:uppercase;letter-spacing:.5px}
+.mult-del{background:rgba(192,57,43,.2);border:1px solid rgba(192,57,43,.4);color:#ff6b5b;padding:7px 12px;border-radius:20px;cursor:pointer;font-size:.75rem;font-family:'Nunito',sans-serif;font-weight:700;transition:all .2s;flex-shrink:0}
+.mult-del:hover{background:rgba(192,57,43,.4);transform:translateY(-1px)}
+
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:rgba(212,168,67,.5);border-radius:3px}
@@ -343,6 +364,17 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
   </div>
 </div>
 
+<!-- ════════════════════════════════ MULTIPLIER OVERLAY ════════════════════════════════ -->
+<div id="mult-overlay" style="display:none">
+  <div class="mult-box">
+    <div class="mult-icon">🔥</div>
+    <div class="mult-label">Punkte Multiplikator aktiv!</div>
+    <div class="mult-factor" id="mult-factor-txt">×2</div>
+    <div class="mult-subtitle" id="mult-subtitle-txt">Alle verbleibenden Punkte verdoppelt!</div>
+    <div class="mult-total" id="mult-total-txt"></div>
+  </div>
+</div>
+
 <!-- ════════════════════════════════ ADMIN ════════════════════════════════ -->
 <div class="screen" id="admin-screen" style="display:none">
   <div class="admin-wrap">
@@ -404,6 +436,36 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
             <input class="ainp" type="text" id="quiz-title-inp" placeholder="Quiz Titel">
           </div>
 
+        </div>
+      </div>
+      <div class="global-box">
+        <h3>🔥 Punkte-Multiplikatoren</h3>
+        <div style="font-size:.78rem;color:var(--silver);line-height:1.5;margin-bottom:14px">
+          Lege fest, nach welchem Prozentsatz der gespielten Fragen die verbleibenden Punkte multipliziert werden.
+          Mehrere Stufen stapeln sich: 2× nach 30% und 4× nach 60% ergibt <strong style="color:var(--gold)">8× Basispunkte</strong> ab 60%.
+        </div>
+        <div id="mult-admin-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+        <div style="background:rgba(212,168,67,.05);border:1px dashed rgba(212,168,67,.35);border-radius:14px;padding:14px 16px">
+          <h3 style="color:var(--gold);font-size:.78rem;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px">➕ Neuer Multiplikator</h3>
+          <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+            <div class="cat-field" style="flex:1;min-width:100px">
+              <label>Nach % der Fragen</label>
+              <input class="ainp" type="number" id="new-mult-at" value="50" min="1" max="99" placeholder="50"> %
+            </div>
+            <div class="cat-field" style="flex:1;min-width:100px">
+              <label>Faktor</label>
+              <select class="asel" id="new-mult-fac">
+                <option value="2">2× (verdoppeln)</option>
+                <option value="3">3× (verdreifachen)</option>
+                <option value="4">4× (vervierfachen)</option>
+                <option value="5">5× (verfünffachen)</option>
+                <option value="6">6× (versechsfachen)</option>
+                <option value="8">8× (verachtfachen)</option>
+                <option value="10">10× (verzehnfachen)</option>
+              </select>
+            </div>
+            <button class="cat-add-btn" onclick="addMultiplier()">+ Hinzufügen</button>
+          </div>
         </div>
       </div>
       <div class="global-box">
@@ -522,6 +584,8 @@ const S = {
   timerVolume:1.0,
   videoVolume:0.5,
   musicVolume:0.5,
+  multipliers:[],          // [{at:30, factor:2}, ...]
+  appliedMultipliers:[],   // indices of already-triggered multipliers
 };
 
 // ════════════════════════════════════════════════════════
@@ -558,7 +622,8 @@ function save(){
   localStorage.setItem('xq2',JSON.stringify({
     qs:S.qs,timers:S.timers,cats:S.cats,theme:S.theme,title:S.title,
     pts:S.pts,
-    timerVolume:S.timerVolume,videoVolume:S.videoVolume,musicVolume:S.musicVolume
+    timerVolume:S.timerVolume,videoVolume:S.videoVolume,musicVolume:S.musicVolume,
+    multipliers:S.multipliers
   }));
 }
 function load(){
@@ -576,6 +641,7 @@ function load(){
     if(d.timerVolume!=null) S.timerVolume=d.timerVolume;
     if(d.videoVolume!=null) S.videoVolume=d.videoVolume;
     if(d.musicVolume!=null) S.musicVolume=d.musicVolume;
+    if(d.multipliers && Array.isArray(d.multipliers)) S.multipliers=d.multipliers;
     syncPTS();
     if(d.qs){
       S.qs=d.qs;
@@ -804,15 +870,18 @@ function renderBoard(){
     hr.appendChild(th);
   });
   const tb=t.createTBody();
+  const mult=getCurrentMultiplier();
   S.pts.forEach((pts,pi)=>{
     const row=tb.insertRow();
+    const effPts=pts*mult;
     S.cats.forEach((cat,ci)=>{
       const key=`${ci}-${pi}`;
       const td=row.insertCell();
       td.className='pc'+(S.used.has(key)?' used':'');
       td.style.background=cat.color+'bb';
       td.style.border=`1px solid ${cat.color}`;
-      td.innerHTML=`<span class="pv">${pts}</span>`;
+      const badge=mult>1?`<span class="mult-badge">×${mult}</span>`:'';
+      td.innerHTML=`<span class="pv">${effPts}${badge}</span>`;
       if(!S.used.has(key)) td.onclick=()=>openQ(ci,pi);
     });
   });
@@ -1011,9 +1080,11 @@ function openQ(ci,pi){
   const cat=S.cats[ci];
   const pts=S.pts[pi];
   const q=(S.qs[ci]&&S.qs[ci][pi])||defQ(ci,pi);
+  const mult=getCurrentMultiplier();
+  const effPts=pts*mult;
 
   document.getElementById('m-cat').textContent=`${cat.emoji}  ${cat.name}`;
-  document.getElementById('m-pts').textContent=`${pts} Punkte`;
+  document.getElementById('m-pts').textContent=mult>1?`${effPts} Punkte (×${mult})`:`${effPts} Punkte`;
 
   const body=document.getElementById('m-body');
   body.innerHTML='';
@@ -1086,7 +1157,7 @@ function revealAnswer(){
 function awardPts(idx,btn){
   if(S.awardedTeams.has(idx)) return;
   S.awardedTeams.add(idx);
-  const pts=S.pts[S.cur.pi];
+  const pts=S.pts[S.cur.pi]*getCurrentMultiplier();
   bumpScore(idx,pts);
   btn.classList.add('awarded');
   btn.textContent=`✓ ${S.teams[idx].name}`;
@@ -1103,6 +1174,7 @@ function closeQ(){
   document.getElementById('q-overlay').style.display='none';
   document.querySelectorAll('#m-body video,#m-body audio,#m-body iframe')
     .forEach(m=>{try{m.src='';m.pause&&m.pause();}catch(_){}});
+  checkMultiplierTriggers();
   renderBoard();
 }
 
@@ -1443,6 +1515,7 @@ function renderSettingsTab(){
   });
   const ti=document.getElementById('quiz-title-inp');
   if(ti) ti.value=S.title;
+  renderMultiplierAdmin();
   // Sync volume sliders
   [['timer',S.timerVolume],['video',S.videoVolume],['music',S.musicVolume]].forEach(([k,v])=>{
     const pct=Math.round(v*100);
@@ -1476,6 +1549,8 @@ function saveAdmin(){
   if(vm) S.musicVolume=parseInt(vm.value)/100;
   // Save category edits (from categories tab)
   saveCategoryEdits();
+  // Save multiplier edits
+  saveMultiplierEdits();
   // Save title
   const ti=document.getElementById('quiz-title-inp');
   if(ti && ti.value.trim()) S.title=ti.value.trim();
@@ -1487,7 +1562,7 @@ function saveAdmin(){
 }
 
 function exportQ(){
-  const blob=new Blob([JSON.stringify({qs:S.qs,timers:S.timers,pts:S.pts,cats:S.cats,theme:S.theme,title:S.title},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({qs:S.qs,timers:S.timers,pts:S.pts,cats:S.cats,theme:S.theme,title:S.title,multipliers:S.multipliers},null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;a.download='quiz-daten.json';
@@ -1509,6 +1584,7 @@ function handleImport(e){
       ensureQsForCats();
       if(d.theme && THEMES[d.theme]) applyTheme(d.theme,false);
       if(d.title) S.title=d.title;
+      if(d.multipliers && Array.isArray(d.multipliers)) S.multipliers=d.multipliers;
       save();
       renderQuestionsTab();
       if(activeTab==='categories') renderCategoriesTab();
@@ -1549,6 +1625,7 @@ function doRestart(){
     // Reset scores and used cells, close admin, stay in quiz
     S.used=new Set();
     S.teams.forEach(t=>t.score=0);
+    S.appliedMultipliers=[];
     hide('admin-screen');
     show('quiz-screen');
     renderBoard();
@@ -1559,6 +1636,7 @@ function doRestart(){
     S.used=new Set();
     S.teams=[];
     S.cur=null;
+    S.appliedMultipliers=[];
     stopTimer();
     // Reset setup steps
     document.getElementById('step-theme').style.display='block';
@@ -1570,6 +1648,121 @@ function doRestart(){
     show('setup-screen');
     toast('🔄 Spiel neu gestartet!');
   }
+}
+
+// ════════════════════════════════════════════════════════
+//  MULTIPLIER LOGIC
+// ════════════════════════════════════════════════════════
+function getCurrentMultiplier(){
+  return S.appliedMultipliers.reduce((acc,i)=>acc*(S.multipliers[i]?S.multipliers[i].factor:1),1);
+}
+
+function checkMultiplierTriggers(){
+  const total=S.cats.length*S.pts.length;
+  if(total===0||S.multipliers.length===0) return;
+  const pct=S.used.size/total*100;
+  // Sort by at-threshold so they fire in order
+  const sorted=[...S.multipliers.keys()]
+    .filter(i=>!S.appliedMultipliers.includes(i))
+    .sort((a,b)=>S.multipliers[a].at-S.multipliers[b].at);
+  let queue=[];
+  sorted.forEach(i=>{
+    if(pct>=S.multipliers[i].at){
+      S.appliedMultipliers.push(i);
+      queue.push(S.multipliers[i].factor);
+    }
+  });
+  if(queue.length>0){
+    // Show animation after a short delay (board renders first)
+    setTimeout(()=>showMultiplierAnimation(queue),200);
+  }
+}
+
+let _multTimeout=null;
+function showMultiplierAnimation(factors){
+  const el=document.getElementById('mult-overlay');
+  if(!el) return;
+  if(_multTimeout) clearTimeout(_multTimeout);
+  // Cumulative factor for this event
+  const eventFactor=factors.reduce((a,b)=>a*b,1);
+  const totalMult=getCurrentMultiplier();
+  // Texts
+  const factorNames={2:'verdoppelt',3:'verdreifacht',4:'vervierfacht',5:'verfünffacht',8:'verachtfacht',10:'verzehnfacht'};
+  const fname=factorNames[eventFactor]||`×${eventFactor}-facht`;
+  document.getElementById('mult-factor-txt').textContent=`×${eventFactor}`;
+  document.getElementById('mult-subtitle-txt').textContent=`Alle verbleibenden Punkte ${fname}!`;
+  document.getElementById('mult-total-txt').textContent=totalMult>eventFactor?`Gesamt-Multiplikator: ×${totalMult} (auf Basispunkte)` :'';
+  el.classList.remove('out');
+  el.style.display='flex';
+  confetti();
+  _multTimeout=setTimeout(()=>{
+    el.classList.add('out');
+    setTimeout(()=>{el.style.display='none';el.classList.remove('out');},500);
+  },4000);
+}
+
+// ── Admin UI for multipliers ──
+function renderMultiplierAdmin(){
+  const wrap=document.getElementById('mult-admin-list');
+  if(!wrap) return;
+  wrap.innerHTML='';
+  if(S.multipliers.length===0){
+    wrap.innerHTML='<div style="font-size:.78rem;color:var(--silver);padding:6px 2px">Noch keine Multiplikatoren definiert.</div>';
+    return;
+  }
+  // Sort by at for display
+  const sorted=[...S.multipliers.keys()].sort((a,b)=>S.multipliers[a].at-S.multipliers[b].at);
+  // Calculate cumulative multiplier preview per row
+  let cum=1;
+  sorted.forEach(i=>{
+    const m=S.multipliers[i];
+    cum*=m.factor;
+    const row=document.createElement('div');
+    row.className='mult-row';
+    row.innerHTML=`
+      <div class="mf"><label>Nach % der Fragen</label>
+        <input class="ainp" type="number" id="mat-${i}" value="${m.at}" min="1" max="99" style="width:80px"> %
+      </div>
+      <div class="mf"><label>Faktor</label>
+        <select class="asel" id="mfac-${i}" style="width:90px">
+          ${[2,3,4,5,6,8,10].map(f=>`<option value="${f}" ${m.factor===f?'selected':''}>${f}×</option>`).join('')}
+        </select>
+      </div>
+      <div style="font-size:.72rem;color:var(--goldt);min-width:110px;flex-shrink:0">
+        → Kumulativ: <strong>×${cum}</strong><br>
+        <span style="color:var(--silver);font-size:.66rem">auf Basispunkte</span>
+      </div>
+      <button class="mult-del" onclick="removeMultiplier(${i})">🗑 Entfernen</button>`;
+    wrap.appendChild(row);
+  });
+}
+function addMultiplier(){
+  const atEl=document.getElementById('new-mult-at');
+  const facEl=document.getElementById('new-mult-fac');
+  const at=parseInt(atEl.value)||50;
+  const factor=parseInt(facEl.value)||2;
+  if(at<1||at>99){toast('❌ Prozent muss zwischen 1 und 99 liegen');return;}
+  S.multipliers.push({at,factor});
+  save();
+  renderMultiplierAdmin();
+  atEl.value='50';
+  toast(`✓ Multiplikator ×${factor} nach ${at}% hinzugefügt`);
+}
+function removeMultiplier(i){
+  S.multipliers.splice(i,1);
+  // Fix up appliedMultipliers indices
+  S.appliedMultipliers=S.appliedMultipliers.filter(x=>x<S.multipliers.length);
+  save();
+  renderMultiplierAdmin();
+  toast('🗑 Multiplikator entfernt');
+}
+function saveMultiplierEdits(){
+  S.multipliers.forEach((_,i)=>{
+    const atEl=document.getElementById(`mat-${i}`);
+    const facEl=document.getElementById(`mfac-${i}`);
+    if(atEl) S.multipliers[i].at=parseInt(atEl.value)||S.multipliers[i].at;
+    if(facEl) S.multipliers[i].factor=parseInt(facEl.value)||S.multipliers[i].factor;
+  });
 }
 
 // ════════════════════════════════════════════════════════

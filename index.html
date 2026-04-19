@@ -880,8 +880,7 @@ function renderBoard(){
       td.className='pc'+(S.used.has(key)?' used':'');
       td.style.background=cat.color+'bb';
       td.style.border=`1px solid ${cat.color}`;
-      const badge=mult>1?`<span class="mult-badge">×${mult}</span>`:'';
-      td.innerHTML=`<span class="pv">${effPts}${badge}</span>`;
+      td.innerHTML=`<span class="pv">${effPts}</span>`;
       if(!S.used.has(key)) td.onclick=()=>openQ(ci,pi);
     });
   });

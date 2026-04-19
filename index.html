@@ -930,12 +930,20 @@ function buildMediaEl(q){
     // YouTube iframe embed
     let src=`https://www.youtube-nocookie.com/embed/${id}?controls=0&disablekb=1&fs=0&start=${start}&enablejsapi=1`;
     if(dur>0) src+=`&end=${start+dur}`;
+    // Wrapper holds placeholder + iframe stacked
+    const wrapper=document.createElement('div');
+    wrapper.style.cssText='position:relative;width:100%;max-width:560px;margin:auto;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000';
+    // Black placeholder
+    const placeholder=document.createElement('div');
+    placeholder.style.cssText='position:absolute;inset:0;background:#000;z-index:2;border-radius:12px';
+    // Iframe hidden beneath placeholder
     const fr=document.createElement('iframe');
     fr.className='qytembed';
+    fr.style.cssText='position:absolute;inset:0;width:100%;height:100%;border-radius:12px;border:none';
     fr.src=src;
     fr.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
     fr.allowFullscreen=true;
-    // Set volume first, then play
+    // Set volume first, then play, then reveal
     fr.addEventListener('load',()=>{
       setTimeout(()=>{
         try{
@@ -950,10 +958,16 @@ function buildMediaEl(q){
               event:'command',func:'playVideo',args:[]
             }),'*');
           }catch(_){}
+          // Fade out placeholder to reveal video
+          placeholder.style.transition='opacity .4s';
+          placeholder.style.opacity='0';
+          setTimeout(()=>placeholder.remove(),450);
         },300);
       },1000);
     });
-    return fr;
+    wrapper.appendChild(fr);
+    wrapper.appendChild(placeholder);
+    return wrapper;
   }
 
   if(q.type==='video'){

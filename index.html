@@ -947,6 +947,7 @@ function buildMediaEl(q){
     fr.addEventListener('load',()=>{
       setTimeout(()=>{
         try{
+          fr.contentWindow.postMessage(JSON.stringify({event:'listening'}),'*');
           fr.contentWindow.postMessage(JSON.stringify({
             event:'command',func:'setVolume',
             args:[Math.round(Math.max(0,Math.min(1,S.videoVolume))*100)]
@@ -965,11 +966,11 @@ function buildMediaEl(q){
         },300);
       },1000);
     });
-    // Listen for video ended (state=0) to show black screen again
+    // Listen for video ended (onStateChange info=0) to show black screen again
     const onYTMsg=(e)=>{
       try{
         const data=typeof e.data==='string'?JSON.parse(e.data):e.data;
-        if(data.event==='infoDelivery' && data.info && data.info.playerState===0){
+        if(data.event==='onStateChange' && data.info===0){
           const endCover=document.createElement('div');
           endCover.style.cssText='position:absolute;inset:0;background:#000;z-index:3;border-radius:12px;opacity:0;transition:opacity .4s';
           wrapper.appendChild(endCover);

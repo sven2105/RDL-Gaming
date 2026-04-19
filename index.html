@@ -1768,6 +1768,7 @@ function saveMultiplierEdits(){
     if(atEl) S.multipliers[i].at=parseInt(atEl.value)||S.multipliers[i].at;
     if(facEl) S.multipliers[i].factor=parseInt(facEl.value)||S.multipliers[i].factor;
   });
+  renderMultiplierAdmin();
 }
 
 // ════════════════════════════════════════════════════════

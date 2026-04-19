@@ -965,10 +965,24 @@ function buildMediaEl(q){
         },300);
       },1000);
     });
+    // Listen for video ended (state=0) to show black screen again
+    const onYTMsg=(e)=>{
+      try{
+        const data=typeof e.data==='string'?JSON.parse(e.data):e.data;
+        if(data.event==='infoDelivery' && data.info && data.info.playerState===0){
+          const endCover=document.createElement('div');
+          endCover.style.cssText='position:absolute;inset:0;background:#000;z-index:3;border-radius:12px;opacity:0;transition:opacity .4s';
+          wrapper.appendChild(endCover);
+          requestAnimationFrame(()=>{ endCover.style.opacity='1'; });
+          window.removeEventListener('message',onYTMsg);
+        }
+      }catch(_){}
+    };
+    window.addEventListener('message',onYTMsg);
     wrapper.appendChild(fr);
     // Permanent cover strip over the title area (top of video)
     const titleCover=document.createElement('div');
-    titleCover.style.cssText='position:absolute;top:0;left:0;right:0;height:17%;background:#000;z-index:1;pointer-events:none';
+    titleCover.style.cssText='position:absolute;top:0;left:0;right:0;height:15%;background:#000;z-index:1;pointer-events:none';
     wrapper.appendChild(titleCover);
     wrapper.appendChild(placeholder);
     return wrapper;

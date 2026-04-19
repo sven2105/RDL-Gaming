@@ -928,7 +928,7 @@ function buildMediaEl(q){
 
   if(id){
     // YouTube iframe embed
-    let src=`https://www.youtube-nocookie.com/embed/${id}?controls=0&disablekb=1&fs=0&start=${start}&enablejsapi=1`;
+    let src=`https://www.youtube-nocookie.com/embed/${id}?controls=0&disablekb=1&fs=0&modestbranding=1&rel=0&start=${start}&enablejsapi=1`;
     if(dur>0) src+=`&end=${start+dur}`;
     // Wrapper holds placeholder + iframe stacked
     const wrapper=document.createElement('div');
@@ -966,6 +966,10 @@ function buildMediaEl(q){
       },1000);
     });
     wrapper.appendChild(fr);
+    // Permanent cover strip over the title area (top of video)
+    const titleCover=document.createElement('div');
+    titleCover.style.cssText='position:absolute;top:0;left:0;right:0;height:15%;background:#000;z-index:1;pointer-events:none';
+    wrapper.appendChild(titleCover);
     wrapper.appendChild(placeholder);
     return wrapper;
   }

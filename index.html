@@ -930,13 +930,12 @@ function buildMediaEl(q){
     // YouTube iframe embed
     let src=`https://www.youtube-nocookie.com/embed/${id}?controls=0&disablekb=1&fs=0&start=${start}&enablejsapi=1`;
     if(dur>0) src+=`&end=${start+dur}`;
-    src+='&autoplay=1';
     const fr=document.createElement('iframe');
     fr.className='qytembed';
     fr.src=src;
     fr.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
     fr.allowFullscreen=true;
-    // Apply volume via postMessage after player loads
+    // Set volume first, then play
     fr.addEventListener('load',()=>{
       setTimeout(()=>{
         try{
@@ -945,7 +944,14 @@ function buildMediaEl(q){
             args:[Math.round(Math.max(0,Math.min(1,S.videoVolume))*100)]
           }),'*');
         }catch(_){}
-      },1200);
+        setTimeout(()=>{
+          try{
+            fr.contentWindow.postMessage(JSON.stringify({
+              event:'command',func:'playVideo',args:[]
+            }),'*');
+          }catch(_){}
+        },300);
+      },1000);
     });
     return fr;
   }

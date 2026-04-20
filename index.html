@@ -619,15 +619,79 @@ function ensureQsForCats(){
 }
 
 // ════════════════════════════════════════════════════════
+//  MEDIA STORE  (session-only: ci-pi → { file, objectUrl })
+// ════════════════════════════════════════════════════════
+const _mediaStore = new Map();
+
+// Convert a File/Blob to a data: URL (used only at export time)
+function fileToDataUrl(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>res(e.target.result);
+    r.onerror=rej;
+    r.readAsDataURL(file);
+  });
+}
+
+// Convert a data: URL → Blob URL and register it in _mediaStore
+function registerDataUrl(dataUrl, ci, pi){
+  const key=`${ci}-${pi}`;
+  // Revoke any previous blob URL for this slot
+  const old=_mediaStore.get(key);
+  if(old) URL.revokeObjectURL(old.objectUrl);
+  // Split and decode
+  const comma=dataUrl.indexOf(',');
+  const header=dataUrl.slice(0,comma);
+  const b64=dataUrl.slice(comma+1);
+  const mimeMatch=header.match(/data:(.*?);base64/);
+  const mime=mimeMatch?mimeMatch[1]:'application/octet-stream';
+  const binary=atob(b64);
+  const bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+  const blob=new Blob([bytes],{type:mime});
+  const objectUrl=URL.createObjectURL(blob);
+  const file=new File([blob],'imported-media',{type:mime});
+  _mediaStore.set(key,{file,objectUrl});
+  return objectUrl;
+}
+
+// After import: walk qs, convert any data: URLs to blob URLs in-place
+function blobifyImportedQs(qs){
+  if(!qs) return qs;
+  return qs.map((col,ci)=>col.map((q,pi)=>{
+    if(q&&q.question&&q.question.startsWith('data:')){
+      const blobUrl=registerDataUrl(q.question,ci,pi);
+      return{...q,question:blobUrl};
+    }
+    return q;
+  }));
+}
+
+// Prepare a clean copy of qs for localStorage (replace blob: with markers)
+function stripBlobsForStorage(qs){
+  return qs.map((col,ci)=>col.map((q,pi)=>{
+    if(q&&q.question&&q.question.startsWith('blob:')){
+      const key=`${ci}-${pi}`;
+      const entry=_mediaStore.get(key);
+      return{...q,question:`__local__:${entry?entry.file.name:''}`};
+    }
+    return q;
+  }));
+}
+
+// ════════════════════════════════════════════════════════
 //  LOCAL STORAGE
 // ════════════════════════════════════════════════════════
 function save(){
-  localStorage.setItem('xq2',JSON.stringify({
-    qs:S.qs,timers:S.timers,cats:S.cats,theme:S.theme,title:S.title,
-    pts:S.pts,
-    timerVolume:S.timerVolume,videoVolume:S.videoVolume,musicVolume:S.musicVolume,
-    multipliers:S.multipliers
-  }));
+  try{
+    localStorage.setItem('xq2',JSON.stringify({
+      qs:stripBlobsForStorage(S.qs),
+      timers:S.timers,cats:S.cats,theme:S.theme,title:S.title,
+      pts:S.pts,
+      timerVolume:S.timerVolume,videoVolume:S.videoVolume,musicVolume:S.musicVolume,
+      multipliers:S.multipliers
+    }));
+  }catch(e){ console.warn('localStorage save failed',e); }
 }
 function load(){
   try{
@@ -647,10 +711,17 @@ function load(){
     if(d.multipliers && Array.isArray(d.multipliers)) S.multipliers=d.multipliers;
     syncPTS();
     if(d.qs){
-      S.qs=d.qs;
+      // Clear __local__ markers (file is gone after reload) and legacy data: URLs
+      S.qs=d.qs.map((col,ci)=>col.map((q,pi)=>{
+        if(!q) return q;
+        if(q.question&&(q.question.startsWith('__local__:')||q.question.startsWith('data:'))){
+          return{...q,question:''};
+        }
+        return q;
+      }));
       // Nullify timers that equal defaults (migration)
       S.qs.forEach((col,ci)=>col.forEach((q,pi)=>{
-        if(q.timer===S.timers[pi]) q.timer=null;
+        if(q&&q.timer===S.timers[pi]) q.timer=null;
       }));
     }
   }catch(_){}
@@ -806,7 +877,7 @@ function handleJsonUpload(e){
     try{
       const d=JSON.parse(ev.target.result);
       if(d.cats) S.cats=d.cats;
-      if(d.qs)   S.qs=d.qs;
+      if(d.qs)   S.qs=blobifyImportedQs(d.qs);
       if(d.pts && Array.isArray(d.pts) && d.pts.length>0){ S.pts=d.pts; syncPTS(); }
       if(d.timers && d.timers.length===S.pts.length) S.timers=d.timers;
       else if(d.timers) S.timers=S.pts.map((_,i)=>d.timers[i]||30);
@@ -1416,6 +1487,14 @@ function renderQuestionsTab(){
           <label id="ql-${ci}-${pi}">${q.type==='text'?'Frage':'Medien-URL'}</label>
           <textarea class="ata" id="qq-${ci}-${pi}" placeholder="${q.type==='text'?'Frage eingeben …':'URL eingeben …'}">${esc(q.question)}</textarea>
         </div>
+        <div class="af" id="file-row-${ci}-${pi}" style="${q.type!=='text'?'':'display:none'}">
+          <label style="font-size:.67rem;color:var(--silver);margin-bottom:5px;display:block">Oder: Lokale Datei laden</label>
+          <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;background:rgba(255,255,255,.07);border:1px solid rgba(212,168,67,.3);border-radius:7px;padding:6px 12px;font-size:.78rem;color:var(--goldt);transition:background .2s">
+            📁 Datei auswählen
+            <input type="file" id="qfile-${ci}-${pi}" accept="${q.type==='image'?'image/*':q.type==='video'?'video/*':'audio/*'}" style="display:none" onchange="handleMediaFile(${ci},${pi},this)">
+          </label>
+          <span id="qfile-name-${ci}-${pi}" style="font-size:.7rem;color:var(--silver);margin-left:8px">${q.question&&(q.question.startsWith('blob:')||q.question.startsWith('data:'))?'(Datei geladen)':''}</span>
+        </div>
         <div id="media-opts-${ci}-${pi}" style="${isMedia?'':'display:none'}">
           <div class="ar">
             <div class="af"><label>Startzeit (Sek.)</label><input class="ainp" type="number" id="qst-${ci}-${pi}" value="${q.startTime||''}" min="0" placeholder="0"></div>
@@ -1431,6 +1510,22 @@ function renderQuestionsTab(){
   });
 }
 
+function handleMediaFile(ci,pi,input){
+  const file=input.files[0];
+  if(!file) return;
+  const key=`${ci}-${pi}`;
+  const nameEl=document.getElementById(`qfile-name-${ci}-${pi}`);
+  // Revoke previous blob URL for this slot to free memory
+  const old=_mediaStore.get(key);
+  if(old) URL.revokeObjectURL(old.objectUrl);
+  // Create a blob URL — no encoding overhead, immediate playback
+  const objectUrl=URL.createObjectURL(file);
+  _mediaStore.set(key,{file,objectUrl});
+  const ta=document.getElementById(`qq-${ci}-${pi}`);
+  if(ta) ta.value=objectUrl;
+  if(nameEl) nameEl.textContent=`✓ ${file.name}`;
+}
+
 function onTC(ci,pi){
   const t=document.getElementById(`qt-${ci}-${pi}`).value;
   document.getElementById(`px-row-${ci}-${pi}`).style.display=t==='image'?'':'none';
@@ -1438,6 +1533,9 @@ function onTC(ci,pi){
   document.getElementById(`qq-${ci}-${pi}`).placeholder=t==='text'?'Frage eingeben …':'URL eingeben …';
   const isMedia=t==='video'||t==='audio';
   document.getElementById(`media-opts-${ci}-${pi}`).style.display=isMedia?'':'none';
+  document.getElementById(`file-row-${ci}-${pi}`).style.display=t!=='text'?'':'none';
+  const fi=document.getElementById(`qfile-${ci}-${pi}`);
+  if(fi) fi.accept=t==='image'?'image/*':t==='video'?'video/*':'audio/*';
 }
 
 // ════════════════════════════════════════════════════════
@@ -1648,8 +1746,26 @@ function saveAdmin(){
   toast('✓ Gespeichert!');
 }
 
-function exportQ(){
-  const blob=new Blob([JSON.stringify({qs:S.qs,timers:S.timers,pts:S.pts,cats:S.cats,theme:S.theme,title:S.title,multipliers:S.multipliers},null,2)],{type:'application/json'});
+async function exportQ(){
+  toast('⏳ Export wird vorbereitet…');
+  // Build a clean qs copy: blob: URLs → base64, __local__: markers → ''
+  const exportQs=await Promise.all(S.qs.map((col,ci)=>
+    Promise.all(col.map(async(q,pi)=>{
+      if(!q||!q.question) return q;
+      if(q.question.startsWith('blob:')){
+        const key=`${ci}-${pi}`;
+        const entry=_mediaStore.get(key);
+        if(entry){
+          try{ const b64=await fileToDataUrl(entry.file); return{...q,question:b64}; }
+          catch(_){ return{...q,question:''}; }
+        }
+        return{...q,question:''};
+      }
+      if(q.question.startsWith('__local__:')) return{...q,question:''};
+      return q;
+    }))
+  ));
+  const blob=new Blob([JSON.stringify({qs:exportQs,timers:S.timers,pts:S.pts,cats:S.cats,theme:S.theme,title:S.title,multipliers:S.multipliers},null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;a.download='quiz-daten.json';
@@ -1664,7 +1780,7 @@ function handleImport(e){
     try{
       const d=JSON.parse(ev.target.result);
       if(d.cats) S.cats=d.cats;
-      if(d.qs)   S.qs=d.qs;
+      if(d.qs)   S.qs=blobifyImportedQs(d.qs);
       if(d.pts && Array.isArray(d.pts) && d.pts.length>0){ S.pts=d.pts; syncPTS(); }
       if(d.timers && d.timers.length===S.pts.length) S.timers=d.timers;
       else if(d.timers) S.timers=S.pts.map((_,i)=>d.timers[i]||30);

@@ -946,7 +946,7 @@ function buildMediaEl(q){
 
     // Permanent title cover strip
     const titleCover=document.createElement('div');
-    titleCover.style.cssText='position:absolute;top:0;left:0;right:0;height:15%;background:#000;z-index:3;pointer-events:none';
+    titleCover.style.cssText='position:absolute;top:0;left:0;right:0;height:17%;background:#000;z-index:3;pointer-events:none';
     wrapper.appendChild(placeholder);
     wrapper.appendChild(titleCover);
 
@@ -955,6 +955,18 @@ function buildMediaEl(q){
     if(dur>0) playerVars.end=(start||0)+dur;
 
     const spawnPlayer=()=>{
+      // Show spinner over placeholder
+      const spinner=document.createElement('div');
+      spinner.style.cssText='position:absolute;inset:0;background:#000;z-index:4;display:flex;align-items:center;justify-content:center;pointer-events:none';
+      spinner.innerHTML=`<div style="width:48px;height:48px;border:4px solid rgba(212,168,67,.25);border-top-color:var(--gold);border-radius:50%;animation:ytspin .8s linear infinite"></div>`;
+      if(!document.getElementById('yt-spin-style')){
+        const st=document.createElement('style');
+        st.id='yt-spin-style';
+        st.textContent='@keyframes ytspin{to{transform:rotate(360deg)}}';
+        document.head.appendChild(st);
+      }
+      wrapper.appendChild(spinner);
+
       // Create fresh target div each time
       const playerDiv=document.createElement('div');
       const pid='ytplayer_'+Math.random().toString(36).slice(2);
@@ -974,6 +986,7 @@ function buildMediaEl(q){
             },
             onStateChange:(e)=>{
               if(e.data===YT.PlayerState.PLAYING){
+                spinner.remove();
                 if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
               }
               if(e.data===YT.PlayerState.ENDED){

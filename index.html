@@ -943,11 +943,11 @@ function buildMediaEl(q){
     placeholder.appendChild(playBtn);
     placeholder.addEventListener('mouseenter',()=>{ playBtn.style.transform='scale(1.1)'; playBtn.style.boxShadow='0 12px 40px rgba(212,168,67,.65)'; });
     placeholder.addEventListener('mouseleave',()=>{ playBtn.style.transform=''; playBtn.style.boxShadow='0 8px 32px rgba(212,168,67,.45)'; });
-    // Div that YT.Player targets
+    // Div that YT.Player targets — hidden until video actually plays
     const playerDiv=document.createElement('div');
     const pid='ytplayer_'+Math.random().toString(36).slice(2);
     playerDiv.id=pid;
-    playerDiv.style.cssText='position:absolute;inset:0;width:100%;height:100%';
+    playerDiv.style.cssText='position:absolute;inset:0;width:100%;height:100%;visibility:hidden';
     wrapper.appendChild(playerDiv);
     // Permanent cover strip over the title area
     const titleCover=document.createElement('div');
@@ -975,13 +975,13 @@ function buildMediaEl(q){
           },
           onStateChange:(e)=>{
             if(e.data===YT.PlayerState.PLAYING){
-              placeholder.style.transition='none';
-              placeholder.style.opacity='0';
-              setTimeout(()=>{ if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder); },50);
+              // Reveal iframe and remove placeholder simultaneously
+              playerDiv.style.visibility='visible';
+              if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
             }
             if(e.data===YT.PlayerState.ENDED){
-              placeholder.style.transition='none';
-              placeholder.style.opacity='1';
+              // Hide iframe again, show placeholder
+              playerDiv.style.visibility='hidden';
               if(!placeholder.parentNode) wrapper.appendChild(placeholder);
             }
           }

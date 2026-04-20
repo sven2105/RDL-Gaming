@@ -975,9 +975,9 @@ function buildMediaEl(q){
           },
           onStateChange:(e)=>{
             if(e.data===YT.PlayerState.PLAYING){
-              placeholder.style.transition='opacity .4s';
+              placeholder.style.transition='none';
               placeholder.style.opacity='0';
-              setTimeout(()=>{ if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder); },450);
+              setTimeout(()=>{ if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder); },50);
             }
             if(e.data===YT.PlayerState.ENDED){
               placeholder.style.transition='none';

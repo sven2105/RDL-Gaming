@@ -970,13 +970,15 @@ function buildMediaEl(q){
             const startPlayback=()=>{
               ytPlayer.seekTo(start||0,true);
               ytPlayer.playVideo();
-              placeholder.style.transition='opacity .4s';
-              placeholder.style.opacity='0';
-              setTimeout(()=>{ if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder); },450);
             };
             placeholder.addEventListener('click',startPlayback);
           },
           onStateChange:(e)=>{
+            if(e.data===YT.PlayerState.PLAYING){
+              placeholder.style.transition='opacity .4s';
+              placeholder.style.opacity='0';
+              setTimeout(()=>{ if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder); },450);
+            }
             if(e.data===YT.PlayerState.ENDED){
               placeholder.style.transition='none';
               placeholder.style.opacity='1';

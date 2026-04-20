@@ -1050,6 +1050,8 @@ function buildMediaEl(q){
     v.addEventListener('play',()=>{
       if(S._pendingTimerSec){startTimer(S._pendingTimerSec);S._pendingTimerSec=null;}
     },{once:true});
+    // Hide video when it ends naturally
+    v.addEventListener('ended',()=>{
       v.style.transition='opacity .6s';
       v.style.opacity='0';
       setTimeout(()=>wrapper.remove(),700);
@@ -1251,6 +1253,7 @@ function awardPts(idx,btn){
 
 function closeQ(){
   stopTimer();
+  S._pendingTimerSec=null;
   if(S.cur){
     S.used.add(`${S.cur.ci}-${S.cur.pi}`);
     S.cur=null;

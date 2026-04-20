@@ -946,7 +946,7 @@ function buildMediaEl(q){
 
     // Permanent title cover strip
     const titleCover=document.createElement('div');
-    titleCover.style.cssText='position:absolute;top:0;left:0;right:0;height:16%;background:#000;z-index:3;pointer-events:none';
+    titleCover.style.cssText='position:absolute;top:0;left:0;right:0;height:17%;background:#000;z-index:3;pointer-events:none';
     wrapper.appendChild(placeholder);
     wrapper.appendChild(titleCover);
 
@@ -988,6 +988,7 @@ function buildMediaEl(q){
               if(e.data===YT.PlayerState.PLAYING){
                 spinner.remove();
                 if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
+                if(S._pendingTimerSec){startTimer(S._pendingTimerSec);S._pendingTimerSec=null;}
               }
               if(e.data===YT.PlayerState.ENDED){
                 // Destroy iframe and re-show placeholder
@@ -1045,8 +1046,10 @@ function buildMediaEl(q){
     } else {
       v.autoplay=true;
     }
-    // Hide video when it ends naturally
-    v.addEventListener('ended',()=>{
+    // Start timer when video actually plays
+    v.addEventListener('play',()=>{
+      if(S._pendingTimerSec){startTimer(S._pendingTimerSec);S._pendingTimerSec=null;}
+    },{once:true});
       v.style.transition='opacity .6s';
       v.style.opacity='0';
       setTimeout(()=>wrapper.remove(),700);
@@ -1072,9 +1075,10 @@ function buildMediaEl(q){
       });
     }
   }
-  const btn=document.createElement('button');
-  btn.className='audio-play-btn';
-  btn.textContent='▶';
+  // Start timer when audio actually plays
+  a.addEventListener('play',()=>{
+    if(S._pendingTimerSec){startTimer(S._pendingTimerSec);S._pendingTimerSec=null;}
+  },{once:true});
   btn.onclick=()=>{
     if(a.paused){
       a.play().catch(()=>{});
@@ -1188,7 +1192,17 @@ function openQ(ci,pi){
   document.getElementById('btn-reveal').disabled=false;
 
   document.getElementById('q-overlay').style.display='flex';
-  startTimer(q.timer||S.timers[pi]||30);
+  const timerSec = q.timer||S.timers[pi]||30;
+  const isMedia = (q.type==='video'||q.type==='audio') && q.question;
+  if(isMedia){
+    // Timer will be started by buildMediaEl when playback begins
+    S._pendingTimerSec = timerSec;
+    stopTimer();
+    tickUI(timerSec, timerSec); // show correct time statically
+  } else {
+    S._pendingTimerSec = null;
+    startTimer(timerSec);
+  }
 }
 
 function revealAnswer(){

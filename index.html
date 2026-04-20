@@ -941,7 +941,7 @@ function buildMediaEl(q){
     wrapper.appendChild(playerDiv);
     // Permanent cover strip over the title area
     const titleCover=document.createElement('div');
-    titleCover.style.cssText='position:absolute;top:0;left:0;right:0;height:16%;background:#000;z-index:1;pointer-events:none';
+    titleCover.style.cssText='position:absolute;top:0;left:0;right:0;height:15%;background:#000;z-index:1;pointer-events:none';
     wrapper.appendChild(titleCover);
     wrapper.appendChild(placeholder);
 
@@ -966,9 +966,8 @@ function buildMediaEl(q){
           onStateChange:(e)=>{
             if(e.data===YT.PlayerState.ENDED){
               const endCover=document.createElement('div');
-              endCover.style.cssText='position:absolute;inset:0;background:#000;z-index:3;opacity:0;transition:opacity .4s;pointer-events:none';
+              endCover.style.cssText='position:absolute;inset:0;background:#000;z-index:3;pointer-events:none';
               wrapper.appendChild(endCover);
-              requestAnimationFrame(()=>{ endCover.style.opacity='1'; });
             }
           }
         }

@@ -967,19 +967,20 @@ function buildMediaEl(q){
           onReady:(e)=>{
             ytPlayer=e.target;
             ytPlayer.setVolume(vol);
-            // Start on placeholder click
-            placeholder.addEventListener('click',()=>{
+            const startPlayback=()=>{
+              ytPlayer.seekTo(start||0,true);
               ytPlayer.playVideo();
               placeholder.style.transition='opacity .4s';
               placeholder.style.opacity='0';
-              setTimeout(()=>placeholder.remove(),450);
-            });
+              setTimeout(()=>{ if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder); },450);
+            };
+            placeholder.addEventListener('click',startPlayback);
           },
           onStateChange:(e)=>{
             if(e.data===YT.PlayerState.ENDED){
-              const endCover=document.createElement('div');
-              endCover.style.cssText='position:absolute;inset:0;background:#000;z-index:3;pointer-events:none';
-              wrapper.appendChild(endCover);
+              placeholder.style.transition='none';
+              placeholder.style.opacity='1';
+              if(!placeholder.parentNode) wrapper.appendChild(placeholder);
             }
           }
         }

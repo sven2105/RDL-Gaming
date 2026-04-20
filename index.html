@@ -1135,6 +1135,9 @@ function buildMediaEl(q){
   const wrap=document.createElement('div');
   wrap.className='audio-play-wrap';
   wrap.innerHTML='<div style="font-size:2.8rem;margin-bottom:4px">🎵</div><div class="audio-play-lbl">Audio-Frage</div>';
+  const btn=document.createElement('button');
+  btn.className='audio-play-btn';
+  btn.textContent='▶';
   const a=document.createElement('audio');
   a.src=q.question;
   a.volume=Math.max(0,Math.min(1,S.musicVolume));

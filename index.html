@@ -1602,7 +1602,6 @@ function renderQuestionsTab(){
   structHtml+=`</div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <button class="qs-add" onclick="addQLevel()">+ Hinzufügen</button>
-      <button class="qs-apply" onclick="applyQStructure()">✔ Anwenden & Aktualisieren</button>
       ${S.pts.length===0?'<div class="qs-warn">⚠ Mindestens eine Frage-Stufe wird benötigt.</div>':''}
     </div>`;
   box.innerHTML=structHtml;
@@ -1889,16 +1888,32 @@ function renderSettingsTab(){
 //  ADMIN – SAVE / EXPORT / IMPORT
 // ════════════════════════════════════════════════════════
 function saveAdmin(){
-  // Save structure inputs (pts + timers) from the UI rows
+  // Validate and save structure inputs (pts + timers) from the UI rows
   const newPts=[],newTimers=[];
+  let valid=true;
   S.pts.forEach((_,pi)=>{
     const pEl=document.getElementById(`qsp-${pi}`);
     const tEl=document.getElementById(`qst-def-${pi}`);
-    if(pEl) newPts.push(parseInt(pEl.value)||S.pts[pi]);
-    if(tEl) newTimers.push(parseInt(tEl.value)||S.timers[pi]);
+    if(!pEl||!tEl){valid=false;return;}
+    const pv=parseInt(pEl.value);
+    const tv=parseInt(tEl.value);
+    if(isNaN(pv)||pv<1){toast('❌ Ungültiger Punktewert');valid=false;return;}
+    if(isNaN(tv)||tv<5){toast('❌ Ungültiger Timer-Wert (min. 5s)');valid=false;return;}
+    newPts.push(pv);
+    newTimers.push(tv);
   });
-  if(newPts.length>0){ S.pts=newPts; syncPTS(); }
-  if(newTimers.length>0) S.timers=newTimers;
+  if(!valid) return;
+  if(newPts.length===0){toast('❌ Mindestens eine Frage-Stufe erforderlich');return;}
+  // Save questions content before resizing
+  saveQContent();
+  // Resize each category's question array to match new structure
+  S.qs.forEach((col,ci)=>{
+    while(col.length<newPts.length) col.push(defQ(ci,col.length));
+    col.length=newPts.length;
+  });
+  S.pts=newPts;
+  S.timers=newTimers;
+  syncPTS();
   // Save volume settings
   const vt=document.getElementById('vol-timer');
   const vv=document.getElementById('vol-video');
@@ -1914,8 +1929,6 @@ function saveAdmin(){
   const ti=document.getElementById('quiz-title-inp');
   if(ti && ti.value.trim()) S.title=ti.value.trim();
   updateTitleDisplay();
-  // Save questions content
-  saveQContent();
   save();
   renderQuestionsTab();
   toast('✓ Gespeichert!');

@@ -1680,7 +1680,7 @@ function applyQStructure(){
   toast('✔ Fragenstruktur aktualisiert!');
 }
 function addQLevel(){
-  // Read current values first
+  // Aktuelle Eingabewerte einlesen bevor neu gerendert wird
   const cur=[];const curT=[];
   S.pts.forEach((_,pi)=>{
     const pEl=document.getElementById(`qsp-${pi}`);
@@ -1689,11 +1689,32 @@ function addQLevel(){
     curT.push(tEl?parseInt(tEl.value)||S.timers[pi]:S.timers[pi]);
   });
   if(cur.length>0){S.pts=cur;S.timers=curT;}
-  // Suggest next point value
-  const lastPts=S.pts.length>0?S.pts[S.pts.length-1]:0;
-  const step=S.pts.length>1?S.pts[S.pts.length-1]-S.pts[S.pts.length-2]:500;
-  S.pts.push(lastPts+Math.max(step,100));
-  S.timers.push(Math.min((S.timers[S.timers.length-1]||30)+15,300));
+
+  // Punkte: lineare Extrapolation aus letzten zwei Werten
+  let nextPts;
+  if(S.pts.length===0){
+    nextPts=200;
+  } else if(S.pts.length===1){
+    // Einzelwert: nächste Stufe = 2× des ersten Wertes
+    nextPts=S.pts[0]*2||S.pts[0]+1;
+  } else {
+    const step=S.pts[S.pts.length-1]-S.pts[S.pts.length-2];
+    nextPts=S.pts[S.pts.length-1]+Math.max(step,1);
+  }
+  S.pts.push(nextPts);
+
+  // Timer: lineare Extrapolation aus letzten zwei Werten
+  let nextTimer;
+  if(S.timers.length===0){
+    nextTimer=30;
+  } else if(S.timers.length===1){
+    nextTimer=Math.min(S.timers[0]+15,300);
+  } else {
+    const step=S.timers[S.timers.length-1]-S.timers[S.timers.length-2];
+    nextTimer=Math.min(Math.max(S.timers[S.timers.length-1]+step,5),300);
+  }
+  S.timers.push(nextTimer);
+
   syncPTS();
   S.qs.forEach((col,ci)=>col.push(defQ(ci,col.length)));
   save();

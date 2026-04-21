@@ -38,7 +38,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .setup-input{width:100%;padding:11px 16px;background:rgba(255,255,255,.07);border:1px solid rgba(212,168,67,.35);border-radius:10px;color:var(--cream);font-size:.95rem;font-family:'Nunito',sans-serif;outline:none;transition:border-color .2s,background .2s;margin-bottom:10px}
 .setup-input:focus{border-color:var(--gold);background:rgba(255,255,255,.12)}
 .setup-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),#a0720a);color:var(--bg);border:none;border-radius:50px;font-size:.95rem;font-weight:900;font-family:'Nunito',sans-serif;cursor:pointer;margin-top:8px;transition:all .2s}
-.setup-btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(212,168,67,.4)}
+.setup-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 30px rgba(212,168,67,.4)}
+.setup-btn:disabled{opacity:.4;cursor:default;pointer-events:none}
 .team-name-inputs{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:280px;overflow-y:auto;padding-right:4px}
 
 /* ── THEME PICKER (setup) ── */
@@ -855,20 +856,31 @@ function renderThemePicker(){
 function goJson(){
   document.getElementById('step-theme').style.display='none';
   document.getElementById('step-json').style.display='block';
-  // Show hint if there's cached data
-  const cached=localStorage.getItem('xq2');
   const hint=document.getElementById('json-cache-hint');
   const btn=document.getElementById('json-continue-btn');
-  if(cached){
-    try{
-      const d=JSON.parse(cached);
-      if(d.qs&&d.cats){
-        hint.style.display='block';
-        btn.textContent='Ohne neuen Fragenkatalog starten →';
-      }
-    }catch(_){}
-  } else {
+  // Reset loaded-name label
+  const lbl=document.getElementById('json-loaded-name');
+  if(lbl) lbl.style.display='none';
+  if(_isRestart){
+    // Restart path: keep existing logic – show cached hint if available
+    const cached=localStorage.getItem('xq2');
+    hint.style.display='none';
+    btn.disabled=false;
     btn.textContent='Weiter →';
+    if(cached){
+      try{
+        const d=JSON.parse(cached);
+        if(d.qs&&d.cats){
+          hint.style.display='block';
+          btn.textContent='Ohne neuen Fragenkatalog starten →';
+        }
+      }catch(_){}
+    }
+  } else {
+    // Initial start: always require a new JSON – no hint, button disabled
+    hint.style.display='none';
+    btn.textContent='Weiter →';
+    btn.disabled=true;
   }
 }
 function handleJsonUpload(e){
@@ -890,7 +902,9 @@ function handleJsonUpload(e){
       const lbl=document.getElementById('json-loaded-name');
       lbl.textContent=`✓ "${f.name}" geladen`;
       lbl.style.display='block';
-      document.getElementById('json-continue-btn').textContent='Weiter →';
+      const continueBtn=document.getElementById('json-continue-btn');
+      continueBtn.textContent='Weiter →';
+      continueBtn.disabled=false;
       document.getElementById('json-cache-hint').style.display='none';
     }catch(_){toast('❌ Fehler beim Laden der JSON-Datei');}
   };
@@ -1965,6 +1979,7 @@ function handleImport(e){
 //  GAME RESTART
 // ════════════════════════════════════════════════════════
 let _restartType = 'game'; // 'game' | 'questions'
+let _isRestart = false;   // false on initial load, true after "Spiel neu starten"
 
 function askRestart(){
   _restartType = 'game';
@@ -1997,6 +2012,7 @@ function doRestart(){
     toast('🔁 Fragen neu gestartet!');
   } else {
     // Full restart: go back to theme selection
+    _isRestart = true;
     S.used=new Set();
     S.teams=[];
     S.cur=null;

@@ -1189,7 +1189,6 @@ function buildMediaEl(q){
     const wrapper=document.createElement('div');
     wrapper.style.cssText='position:relative;width:100%;max-width:560px;margin:auto;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000';
 
-    // Placeholder: Blackscreen mit Musik-Emoji + "Guess the song" + Play-Button
     const placeholder=document.createElement('div');
     placeholder.style.cssText='position:absolute;inset:0;background:#000;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;cursor:pointer';
     const guessEmoji=document.createElement('div');
@@ -1204,7 +1203,7 @@ function buildMediaEl(q){
     placeholder.appendChild(guessEmoji);
     placeholder.appendChild(guessLabel);
     placeholder.appendChild(playBtn);
-    placeholder.addEventListener('mouseenter',()=>{playBtn.style.transform='scale(1.1)';playBtn.style.boxShadow='0 12px 40px rgba(212,168,67,.65)';});
+    placeholder.addEventListener('mouseenter',()=>{if(isIdle){playBtn.style.transform='scale(1.1)';playBtn.style.boxShadow='0 12px 40px rgba(212,168,67,.65)';}});
     placeholder.addEventListener('mouseleave',()=>{playBtn.style.transform='';playBtn.style.boxShadow='0 8px 32px rgba(212,168,67,.45)';});
     wrapper.appendChild(placeholder);
 
@@ -1213,37 +1212,59 @@ function buildMediaEl(q){
     a.volume=Math.max(0,Math.min(1,S.musicVolume));
     wrapper.appendChild(a);
 
-    const showReplay=()=>{
+    // State: idle = bereit zum Abspielen, playing = läuft
+    let isIdle=true;
+    let timerStarted=false;
+    let stopHandled=false;
+
+    const setIdle=()=>{
+      if(isIdle) return; // Guard: nicht doppelt aufrufen
+      isIdle=true;
+      stopHandled=false;
       if(start>0) a.currentTime=start;
+      playBtn.style.display='flex';
       placeholder.style.cursor='pointer';
       placeholder.style.pointerEvents='';
-      playBtn.style.display='flex';
-      placeholder.addEventListener('click',startAudio,{once:true});
     };
 
-    const startAudio=()=>{
-      // Play-Button ausblenden → Blackscreen "Guess the song" bleibt sichtbar
+    const setPlaying=()=>{
+      isIdle=false;
       playBtn.style.display='none';
       placeholder.style.cursor='default';
       placeholder.style.pointerEvents='none';
-      if(start>0) a.currentTime=start;
-      a.play().catch(()=>{});
     };
 
+    // Einziger persistenter Click-Handler — prüft State selbst
+    placeholder.addEventListener('click',()=>{
+      if(!isIdle) return;
+      setPlaying();
+      if(start>0) a.currentTime=start;
+      a.play().catch(()=>{});
+    });
+
+    // Timer einmalig starten beim ersten play
+    a.addEventListener('play',()=>{
+      if(!timerStarted && S._pendingTimerSec){
+        startTimer(S._pendingTimerSec);
+        S._pendingTimerSec=null;
+        timerStarted=true;
+      }
+    });
+
+    // Stopp via Dauer
     if(dur>0){
       a.addEventListener('timeupdate',()=>{
-        if(a.currentTime>=(start+dur)){a.pause();showReplay();}
+        if(!stopHandled && a.currentTime>=(start+dur)){
+          stopHandled=true;
+          a.pause();
+          setIdle();
+        }
       });
     }
 
-    // Timer starten sobald Audio läuft
-    a.addEventListener('play',()=>{
-      if(S._pendingTimerSec){startTimer(S._pendingTimerSec);S._pendingTimerSec=null;}
-    },{once:true});
+    // Stopp via natürliches Ende
+    a.addEventListener('ended',()=>{ setIdle(); });
 
-    a.addEventListener('ended',showReplay);
-
-    placeholder.addEventListener('click',startAudio,{once:true});
     return wrapper;
   }
 }

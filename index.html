@@ -387,7 +387,6 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
         <button class="btn btn-red-sharp" onclick="askRestart()" title="Spiel neu starten">🎮 Spiel neu starten</button>
         <button class="btn btn-out" onclick="importQ()">📥 Import</button>
         <button class="btn btn-out" onclick="exportQ()">📤 Export</button>
-        <button class="btn btn-gold" onclick="saveAdmin()">💾 Speichern</button>
         <button class="btn btn-red" style="background:rgba(139,0,0,.7)" onclick="hideAdmin()">✕ Schließen</button>
       </div>
     </div>
@@ -807,6 +806,8 @@ function applyTheme(id,updateTitle){
   if(ti) ti.value=S.title;
   // Refresh volume slider fill colours
   document.querySelectorAll('input.vol-slider').forEach(sl=>updateVolFill(sl));
+  // Persist theme change immediately (no Speichern button)
+  save();
 }
 function updateTitleDisplay(){
   const h=document.getElementById('qhdr-title');
@@ -1887,51 +1888,72 @@ function renderSettingsTab(){
 // ════════════════════════════════════════════════════════
 //  ADMIN – SAVE / EXPORT / IMPORT
 // ════════════════════════════════════════════════════════
-function saveAdmin(){
-  // Validate and save structure inputs (pts + timers) from the UI rows
-  const newPts=[],newTimers=[];
-  let valid=true;
+//  ADMIN – AUTO-SAVE
+// ════════════════════════════════════════════════════════
+let _autoSaveTimer = null;
+function scheduleAutoSave(){
+  clearTimeout(_autoSaveTimer);
+  _autoSaveTimer = setTimeout(autoSaveAdmin, 1000);
+}
+
+function autoSaveAdmin(){
+  // Read pts+timers from UI rows; validate softly (skip if still being edited)
+  const newPts=[], newTimers=[];
+  let structureValid = true;
   S.pts.forEach((_,pi)=>{
     const pEl=document.getElementById(`qsp-${pi}`);
     const tEl=document.getElementById(`qst-def-${pi}`);
-    if(!pEl||!tEl){valid=false;return;}
+    if(!pEl||!tEl){ structureValid=false; return; }
     const pv=parseInt(pEl.value);
     const tv=parseInt(tEl.value);
-    if(isNaN(pv)||pv<1){toast('❌ Ungültiger Punktewert');valid=false;return;}
-    if(isNaN(tv)||tv<5){toast('❌ Ungültiger Timer-Wert (min. 5s)');valid=false;return;}
+    if(isNaN(pv)||pv<1||isNaN(tv)||tv<5){ structureValid=false; return; }
     newPts.push(pv);
     newTimers.push(tv);
   });
-  if(!valid) return;
-  if(newPts.length===0){toast('❌ Mindestens eine Frage-Stufe erforderlich');return;}
-  // Save questions content before resizing
+
+  // Detect structural change (pts/timers values or length changed)
+  const structureChanged = structureValid && newPts.length>0 && (
+    newPts.length!==S.pts.length ||
+    newPts.some((v,i)=>v!==S.pts[i]) ||
+    newTimers.some((v,i)=>v!==S.timers[i])
+  );
+
+  // Persist question content from DOM
   saveQContent();
-  // Resize each category's question array to match new structure
-  S.qs.forEach((col,ci)=>{
-    while(col.length<newPts.length) col.push(defQ(ci,col.length));
-    col.length=newPts.length;
-  });
-  S.pts=newPts;
-  S.timers=newTimers;
-  syncPTS();
-  // Save volume settings
+
+  if(structureValid && newPts.length>0){
+    // Resize each category's question array if structure changed
+    if(structureChanged){
+      S.qs.forEach((col,ci)=>{
+        while(col.length<newPts.length) col.push(defQ(ci,col.length));
+        col.length=newPts.length;
+      });
+    }
+    S.pts=newPts;
+    S.timers=newTimers;
+    syncPTS();
+  }
+
+  // Volumes
   const vt=document.getElementById('vol-timer');
   const vv=document.getElementById('vol-video');
   const vm=document.getElementById('vol-music');
   if(vt) S.timerVolume=parseInt(vt.value)/100;
   if(vv) S.videoVolume=parseInt(vv.value)/100;
   if(vm) S.musicVolume=parseInt(vm.value)/100;
-  // Save category edits (from categories tab)
+
   saveCategoryEdits();
-  // Save multiplier edits
   saveMultiplierEdits();
-  // Save title
+
   const ti=document.getElementById('quiz-title-inp');
   if(ti && ti.value.trim()) S.title=ti.value.trim();
   updateTitleDisplay();
+
   save();
-  renderQuestionsTab();
-  toast('✓ Gespeichert!');
+
+  // Only re-render questions tab when structure actually changed
+  // (avoids losing keyboard focus while typing in question fields)
+  if(structureChanged) renderQuestionsTab();
 }
 
 async function exportQ(){
@@ -2210,6 +2232,9 @@ applyTheme(S.theme,false);
 updateTitleDisplay();
 renderThemePicker();
 document.getElementById('tc-inp').addEventListener('keydown',e=>{if(e.key==='Enter')goNames();});
+// Auto-save: trigger on any input or change inside the admin panel
+document.getElementById('admin-screen').addEventListener('input', scheduleAutoSave);
+document.getElementById('admin-screen').addEventListener('change', scheduleAutoSave);
 show('setup-screen');
 </script>
 </body>

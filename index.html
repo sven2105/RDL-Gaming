@@ -1557,6 +1557,7 @@ function switchTab(name){
   });
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
+  if(name==='questions') renderQuestionsTab();
   if(name==='categories') renderCategoriesTab();
   if(name==='settings') renderSettingsTab();
 }
@@ -1572,8 +1573,18 @@ function showAdmin(){
   if(activeTab==='settings') renderSettingsTab();
 }
 function hideAdmin(){
+  // Ausstehenden Autosave sofort ausführen, damit nichts verloren geht
+  clearTimeout(_autoSaveTimer);
+  saveCategoryEdits();
+  saveQContent();
+  save();
   hide('admin-screen');
   show('quiz-screen');
+  // Board und Scores mit den aktuellen Daten neu rendern
+  if(S.teams.length > 0){
+    renderBoard();
+    renderScores();
+  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -1951,9 +1962,10 @@ function autoSaveAdmin(){
 
   save();
 
-  // Only re-render questions tab when structure actually changed
-  // (avoids losing keyboard focus while typing in question fields)
-  if(structureChanged) renderQuestionsTab();
+  // Re-render questions tab when structure changed, OR when the user is on
+  // another tab (categories/settings) – in that case focus in question fields
+  // is not at risk, and headers need to reflect category name changes.
+  if(structureChanged || activeTab !== 'questions') renderQuestionsTab();
 }
 
 async function exportQ(){

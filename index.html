@@ -998,6 +998,9 @@ function buildMediaEl(q){
   const dur=parseInt(q.duration)||0;
 
   if(id){
+    // Musik-Modus: Typ "audio" + YouTube-Link → nur Audio, kein sichtbares Video
+    const isMusicMode=(q.type==='audio');
+
     const wrapper=document.createElement('div');
     wrapper.style.cssText='position:relative;width:100%;max-width:560px;margin:auto;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000';
 
@@ -1005,10 +1008,10 @@ function buildMediaEl(q){
     const placeholder=document.createElement('div');
     placeholder.style.cssText='position:absolute;inset:0;background:#000;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;cursor:pointer';
     const guessEmoji=document.createElement('div');
-    guessEmoji.textContent='🎬';
+    guessEmoji.textContent=isMusicMode?'🎵':'🎬';
     guessEmoji.style.cssText='font-size:2.8rem;pointer-events:none;line-height:1';
     const guessLabel=document.createElement('div');
-    guessLabel.textContent='Guess the video clip';
+    guessLabel.textContent=isMusicMode?'Guess the song':'Guess the video clip';
     guessLabel.style.cssText='font-family:"Mountains of Christmas",cursive;font-size:1.6rem;color:var(--gold);text-shadow:0 0 24px rgba(212,168,67,.6);letter-spacing:1px;pointer-events:none';
     const playBtn=document.createElement('div');
     playBtn.style.cssText='width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#a0720a);display:flex;align-items:center;justify-content:center;font-size:2rem;box-shadow:0 8px 32px rgba(212,168,67,.45);transition:transform .15s,box-shadow .15s;pointer-events:none';
@@ -1019,18 +1022,19 @@ function buildMediaEl(q){
     placeholder.addEventListener('mouseenter',()=>{ playBtn.style.transform='scale(1.1)'; playBtn.style.boxShadow='0 12px 40px rgba(212,168,67,.65)'; });
     placeholder.addEventListener('mouseleave',()=>{ playBtn.style.transform=''; playBtn.style.boxShadow='0 8px 32px rgba(212,168,67,.45)'; });
 
-    // Permanent title cover strip
+    // Permanent title cover strip (für Video-Modus: YouTube-Titelleiste abdecken)
     const titleCover=document.createElement('div');
     titleCover.style.cssText='position:absolute;top:0;left:0;right:0;height:17%;background:#000;z-index:3;pointer-events:none';
     wrapper.appendChild(placeholder);
     wrapper.appendChild(titleCover);
 
-    const vol=Math.round(Math.max(0,Math.min(1,S.videoVolume))*100);
+    // Lautstärke: Musik-Lautstärke im Musik-Modus, sonst Video-Lautstärke
+    const vol=Math.round(Math.max(0,Math.min(1,isMusicMode?S.musicVolume:S.videoVolume))*100);
     const playerVars={controls:0,disablekb:1,fs:0,modestbranding:1,rel:0,enablejsapi:1,start:start||0};
     if(dur>0) playerVars.end=(start||0)+dur;
 
     const spawnPlayer=()=>{
-      // Show spinner over placeholder
+      // Spinner über Placeholder anzeigen
       const spinner=document.createElement('div');
       spinner.style.cssText='position:absolute;inset:0;background:#000;z-index:4;display:flex;align-items:center;justify-content:center;pointer-events:none';
       spinner.innerHTML=`<div style="width:48px;height:48px;border:4px solid rgba(212,168,67,.25);border-top-color:var(--gold);border-radius:50%;animation:ytspin .8s linear infinite"></div>`;
@@ -1042,7 +1046,7 @@ function buildMediaEl(q){
       }
       wrapper.appendChild(spinner);
 
-      // Create fresh target div each time
+      // Neues Player-Div anlegen
       const playerDiv=document.createElement('div');
       const pid='ytplayer_'+Math.random().toString(36).slice(2);
       playerDiv.id=pid;
@@ -1062,14 +1066,32 @@ function buildMediaEl(q){
             onStateChange:(e)=>{
               if(e.data===YT.PlayerState.PLAYING){
                 spinner.remove();
-                if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
+                if(isMusicMode){
+                  // Video unsichtbar machen (Audio läuft weiter), Placeholder als Blackscreen behalten
+                  playerDiv.style.visibility='hidden';
+                  // Play-Button ausblenden → nur Emoji + "Guess the song" bleibt sichtbar
+                  playBtn.style.display='none';
+                  placeholder.style.cursor='default';
+                  placeholder.style.pointerEvents='none';
+                } else {
+                  // Video-Modus: Placeholder entfernen → Video sichtbar
+                  if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
+                }
                 if(S._pendingTimerSec){startTimer(S._pendingTimerSec);S._pendingTimerSec=null;}
               }
               if(e.data===YT.PlayerState.ENDED){
-                // Destroy iframe and re-show placeholder
+                // Player-Div entfernen
                 playerDiv.remove();
-                wrapper.insertBefore(placeholder,titleCover);
-                // Re-arm click for next play
+                if(isMusicMode){
+                  // Musik-Modus: Placeholder war nie entfernt worden → Play-Button wiederherstellen
+                  playBtn.style.display='';
+                  placeholder.style.cursor='pointer';
+                  placeholder.style.pointerEvents='';
+                } else {
+                  // Video-Modus: Placeholder wieder einblenden
+                  wrapper.insertBefore(placeholder,titleCover);
+                }
+                // Replay ermöglichen
                 placeholder.addEventListener('click',spawnPlayer,{once:true});
               }
             }

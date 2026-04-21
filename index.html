@@ -248,6 +248,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .audio-play-btn{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#a0720a);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:2rem;transition:all .2s;box-shadow:0 8px 28px rgba(0,0,0,.4)}
 .audio-play-btn:hover{transform:scale(1.08);box-shadow:0 12px 36px rgba(0,0,0,.5)}
 .audio-play-btn.playing{background:linear-gradient(135deg,#4caf50,#2e7d32)}
+.audio-play-wrap .pausing{background:linear-gradient(135deg,#1976d2,#0d47a1)}
 .audio-play-lbl{font-size:.78rem;color:var(--silver);letter-spacing:1px;text-transform:uppercase}
 
 input[type="color"]{-webkit-appearance:none;width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;padding:2px;background:none}
@@ -1068,9 +1069,11 @@ function buildMediaEl(q){
                 spinner.remove();
                 if(isMusicMode){
                   playerDiv.style.visibility='hidden';
-                  playBtn.style.display='none';
-                  placeholder.style.cursor='default';
-                  placeholder.style.pointerEvents='none';
+                  ytPlayerRef=ytPlayer;
+                  playBtn.innerHTML='⏸';
+                  playBtn.style.display='flex';
+                  placeholder.style.cursor='pointer';
+                  placeholder.style.pointerEvents='';
                 } else {
                   if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
                 }
@@ -1079,29 +1082,36 @@ function buildMediaEl(q){
                 if(!dur){
                   S._stopMedia=()=>{
                     try{ytPlayer.pauseVideo();}catch(_){}
+                    ytPlayerRef=null;
                     playerDiv.remove();
                     if(isMusicMode){
+                      playBtn.innerHTML='▶';
                       playBtn.style.display='flex';
                       placeholder.style.cursor='pointer';
                       placeholder.style.pointerEvents='';
                     } else {
                       wrapper.insertBefore(placeholder,titleCover);
+                      placeholder.addEventListener('click',spawnPlayer,{once:true});
                     }
-                    placeholder.addEventListener('click',spawnPlayer,{once:true});
                   };
                 }
               }
+              if(e.data===YT.PlayerState.PAUSED && isMusicMode){
+                playBtn.innerHTML='▶';
+              }
               if(e.data===YT.PlayerState.ENDED){
                 S._stopMedia=null;
+                ytPlayerRef=null;
                 playerDiv.remove();
                 if(isMusicMode){
+                  playBtn.innerHTML='▶';
                   playBtn.style.display='flex';
                   placeholder.style.cursor='pointer';
                   placeholder.style.pointerEvents='';
                 } else {
                   wrapper.insertBefore(placeholder,titleCover);
+                  placeholder.addEventListener('click',spawnPlayer,{once:true});
                 }
-                placeholder.addEventListener('click',spawnPlayer,{once:true});
               }
             }
           }
@@ -1121,7 +1131,22 @@ function buildMediaEl(q){
       }
     };
 
-    placeholder.addEventListener('click',spawnPlayer,{once:true});
+    // Musik-Modus: persistenter Toggle-Handler; Video-Modus: einmaliger Spawn
+    let ytPlayerRef=null;
+    if(isMusicMode){
+      placeholder.addEventListener('click',()=>{
+        if(!ytPlayerRef){ spawnPlayer(); }
+        else{
+          try{
+            const st=ytPlayerRef.getPlayerState();
+            if(st===YT.PlayerState.PLAYING) ytPlayerRef.pauseVideo();
+            else ytPlayerRef.playVideo();
+          }catch(_){}
+        }
+      });
+    } else {
+      placeholder.addEventListener('click',spawnPlayer,{once:true});
+    }
     return wrapper;
   }
 
@@ -1224,39 +1249,46 @@ function buildMediaEl(q){
     a.volume=Math.max(0,Math.min(1,S.musicVolume));
     wrapper.appendChild(a);
 
-    // State: idle = bereit zum Abspielen, playing = läuft
-    let isIdle=true;
+    // State: 'idle' | 'playing' | 'paused'
+    let audioState='idle';
     let timerStarted=false;
     let stopHandled=false;
 
-    const setIdle=()=>{
-      if(isIdle) return;
-      isIdle=true;
-      stopHandled=false;
-      S._stopMedia=null;
-      a.currentTime=start;
+    const updateAudioBtn=()=>{
+      playBtn.innerHTML=audioState==='playing'?'⏸':'▶';
       playBtn.style.display='flex';
       placeholder.style.cursor='pointer';
       placeholder.style.pointerEvents='';
     };
 
-    const setPlaying=()=>{
-      isIdle=false;
-      playBtn.style.display='none';
-      placeholder.style.cursor='default';
-      placeholder.style.pointerEvents='none';
+    const setIdle=()=>{
+      if(audioState==='idle') return;
+      audioState='idle';
+      stopHandled=false;
+      S._stopMedia=null;
+      a.pause();
+      a.currentTime=start;
+      updateAudioBtn();
     };
 
-    // Einziger persistenter Click-Handler — prüft State selbst
+    const setPlaying=()=>{ audioState='playing'; updateAudioBtn(); };
+    const setPaused=()=>{ audioState='paused'; updateAudioBtn(); };
+
+    // Persistenter Click-Handler — Play / Pause / Resume
     placeholder.addEventListener('click',()=>{
-      if(!isIdle) return;
-      setPlaying();
-      const doPlay=()=>{
-        a.currentTime=start;
+      if(audioState==='idle'){
+        setPlaying();
+        const doPlay=()=>{ a.currentTime=start; a.play().catch(()=>{}); };
+        if(a.readyState>=1){ doPlay(); }
+        else{ a.addEventListener('loadedmetadata',doPlay,{once:true}); }
+      } else if(audioState==='playing'){
+        a.pause();
+        setPaused();
+        S._stopMedia=null;
+      } else if(audioState==='paused'){
+        setPlaying();
         a.play().catch(()=>{});
-      };
-      if(a.readyState>=1){ doPlay(); }
-      else{ a.addEventListener('loadedmetadata',doPlay,{once:true}); }
+      }
     });
 
     // Timer starten + _stopMedia setzen beim ersten play

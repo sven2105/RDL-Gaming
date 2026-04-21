@@ -1054,7 +1054,7 @@ function buildMediaEl(q){
       wrapper.insertBefore(playerDiv,placeholder);
 
       const initYT=()=>{
-        new YT.Player(pid,{
+        const ytPlayer=new YT.Player(pid,{
           videoId:id,
           playerVars,
           events:{
@@ -1067,31 +1067,40 @@ function buildMediaEl(q){
               if(e.data===YT.PlayerState.PLAYING){
                 spinner.remove();
                 if(isMusicMode){
-                  // Video unsichtbar machen (Audio läuft weiter), Placeholder als Blackscreen behalten
                   playerDiv.style.visibility='hidden';
-                  // Play-Button ausblenden → nur Emoji + "Guess the song" bleibt sichtbar
                   playBtn.style.display='none';
                   placeholder.style.cursor='default';
                   placeholder.style.pointerEvents='none';
                 } else {
-                  // Video-Modus: Placeholder entfernen → Video sichtbar
                   if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
                 }
                 if(S._pendingTimerSec){startTimer(S._pendingTimerSec);S._pendingTimerSec=null;}
+                // Wenn keine Dauer: beim Timer-Ende stoppen
+                if(!dur){
+                  S._stopMedia=()=>{
+                    try{ytPlayer.pauseVideo();}catch(_){}
+                    playerDiv.remove();
+                    if(isMusicMode){
+                      playBtn.style.display='flex';
+                      placeholder.style.cursor='pointer';
+                      placeholder.style.pointerEvents='';
+                    } else {
+                      wrapper.insertBefore(placeholder,titleCover);
+                    }
+                    placeholder.addEventListener('click',spawnPlayer,{once:true});
+                  };
+                }
               }
               if(e.data===YT.PlayerState.ENDED){
-                // Player-Div entfernen
+                S._stopMedia=null;
                 playerDiv.remove();
                 if(isMusicMode){
-                  // Musik-Modus: Placeholder war nie entfernt worden → Play-Button wiederherstellen
                   playBtn.style.display='flex';
                   placeholder.style.cursor='pointer';
                   placeholder.style.pointerEvents='';
                 } else {
-                  // Video-Modus: Placeholder wieder einblenden
                   wrapper.insertBefore(placeholder,titleCover);
                 }
-                // Replay ermöglichen
                 placeholder.addEventListener('click',spawnPlayer,{once:true});
               }
             }
@@ -1149,6 +1158,7 @@ function buildMediaEl(q){
       wrapper.insertBefore(v,placeholder);
 
       const showReplay=()=>{
+        S._stopMedia=null;
         v.remove();
         wrapper.appendChild(placeholder);
         placeholder.style.cursor='pointer';
@@ -1171,10 +1181,12 @@ function buildMediaEl(q){
         v.play().catch(()=>{});
       }
 
-      // Timer starten, Placeholder entfernen sobald Video läuft
+      // Timer starten, Placeholder entfernen, _stopMedia setzen sobald Video läuft
       v.addEventListener('play',()=>{
         if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
         if(S._pendingTimerSec){startTimer(S._pendingTimerSec);S._pendingTimerSec=null;}
+        // Wenn keine Dauer: beim Timer-Ende stoppen
+        if(!dur) S._stopMedia=()=>{v.pause();showReplay();};
       },{once:true});
 
       v.addEventListener('ended',showReplay);
@@ -1218,10 +1230,11 @@ function buildMediaEl(q){
     let stopHandled=false;
 
     const setIdle=()=>{
-      if(isIdle) return; // Guard: nicht doppelt aufrufen
+      if(isIdle) return;
       isIdle=true;
       stopHandled=false;
-      a.currentTime=start; // immer zurücksetzen, auch wenn start=0
+      S._stopMedia=null;
+      a.currentTime=start;
       playBtn.style.display='flex';
       placeholder.style.cursor='pointer';
       placeholder.style.pointerEvents='';
@@ -1239,21 +1252,22 @@ function buildMediaEl(q){
       if(!isIdle) return;
       setPlaying();
       const doPlay=()=>{
-        a.currentTime=start; // immer setzen, auch wenn start=0
+        a.currentTime=start;
         a.play().catch(()=>{});
       };
-      // Audio bereits geladen (z.B. Replay)? Direkt, sonst auf Metadaten warten
       if(a.readyState>=1){ doPlay(); }
       else{ a.addEventListener('loadedmetadata',doPlay,{once:true}); }
     });
 
-    // Timer einmalig starten beim ersten play
+    // Timer starten + _stopMedia setzen beim ersten play
     a.addEventListener('play',()=>{
       if(!timerStarted && S._pendingTimerSec){
         startTimer(S._pendingTimerSec);
         S._pendingTimerSec=null;
         timerStarted=true;
       }
+      // Wenn keine Dauer: beim Timer-Ende stoppen
+      if(!dur) S._stopMedia=()=>{a.pause();setIdle();};
     });
 
     // Stopp via Dauer
@@ -1416,6 +1430,7 @@ function awardPts(idx,btn){
 function closeQ(){
   stopTimer();
   S._pendingTimerSec=null;
+  S._stopMedia=null;
   if(S.cur){
     S.used.add(`${S.cur.ci}-${S.cur.pi}`);
     S.cur=null;
@@ -1465,6 +1480,7 @@ function startTimer(sec){
       stopTimer();
       document.getElementById('ttxt').textContent='⏰';
       playTimerEndSound();
+      if(S._stopMedia){S._stopMedia();S._stopMedia=null;}
     }
   },1000);
 }

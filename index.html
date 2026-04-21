@@ -1116,100 +1116,135 @@ function buildMediaEl(q){
     return wrapper;
   }
 
+  // ── Lokale Video-Datei ──────────────────────────────────
   if(q.type==='video'){
     const wrapper=document.createElement('div');
-    wrapper.style.cssText='width:100%;display:flex;flex-direction:column;align-items:center;gap:10px';
-    const v=document.createElement('video');
-    v.className='qvid';
-    v.src=q.question;
-    v.controls=true;
-    v.volume=Math.max(0,Math.min(1,S.videoVolume));
-    if(start>0||dur>0){
-      v.addEventListener('loadedmetadata',()=>{
-        if(start>0) v.currentTime=start;
-        v.play().catch(()=>{});
-      });
-      if(dur>0){
-        v.addEventListener('timeupdate',()=>{
-          if(v.currentTime>=(start+dur)){
-            v.pause();
-            // Fade out and remove video to hide info
-            v.style.transition='opacity .6s';
-            v.style.opacity='0';
-            setTimeout(()=>wrapper.remove(),700);
-          }
+    wrapper.style.cssText='position:relative;width:100%;max-width:560px;margin:auto;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000';
+
+    // Placeholder mit Play-Button (kein titleCover-Balken für lokale Dateien)
+    const placeholder=document.createElement('div');
+    placeholder.style.cssText='position:absolute;inset:0;background:#000;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;cursor:pointer';
+    const guessEmoji=document.createElement('div');
+    guessEmoji.textContent='🎬';
+    guessEmoji.style.cssText='font-size:2.8rem;pointer-events:none;line-height:1';
+    const guessLabel=document.createElement('div');
+    guessLabel.textContent='Guess the video clip';
+    guessLabel.style.cssText='font-family:"Mountains of Christmas",cursive;font-size:1.6rem;color:var(--gold);text-shadow:0 0 24px rgba(212,168,67,.6);letter-spacing:1px;pointer-events:none';
+    const playBtn=document.createElement('div');
+    playBtn.style.cssText='width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#a0720a);display:flex;align-items:center;justify-content:center;font-size:2rem;box-shadow:0 8px 32px rgba(212,168,67,.45);transition:transform .15s,box-shadow .15s;pointer-events:none';
+    playBtn.innerHTML='▶';
+    placeholder.appendChild(guessEmoji);
+    placeholder.appendChild(guessLabel);
+    placeholder.appendChild(playBtn);
+    placeholder.addEventListener('mouseenter',()=>{playBtn.style.transform='scale(1.1)';playBtn.style.boxShadow='0 12px 40px rgba(212,168,67,.65)';});
+    placeholder.addEventListener('mouseleave',()=>{playBtn.style.transform='';playBtn.style.boxShadow='0 8px 32px rgba(212,168,67,.45)';});
+    wrapper.appendChild(placeholder);
+
+    const spawnVideo=()=>{
+      const v=document.createElement('video');
+      v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000';
+      v.src=q.question;
+      v.controls=true;
+      v.volume=Math.max(0,Math.min(1,S.videoVolume));
+      wrapper.insertBefore(v,placeholder);
+
+      const showReplay=()=>{
+        v.remove();
+        placeholder.style.cursor='pointer';
+        placeholder.style.pointerEvents='';
+        playBtn.style.display='flex';
+        placeholder.addEventListener('click',spawnVideo,{once:true});
+      };
+
+      if(start>0||dur>0){
+        v.addEventListener('loadedmetadata',()=>{
+          if(start>0) v.currentTime=start;
+          v.play().catch(()=>{});
         });
+        if(dur>0){
+          v.addEventListener('timeupdate',()=>{
+            if(v.currentTime>=(start+dur)){v.pause();showReplay();}
+          });
+        }
+      } else {
+        v.play().catch(()=>{});
       }
-    } else {
-      v.autoplay=true;
-    }
-    // Start timer when video actually plays
-    v.addEventListener('play',()=>{
-      if(S._pendingTimerSec){startTimer(S._pendingTimerSec);S._pendingTimerSec=null;}
-    },{once:true});
-    // Hide video when it ends naturally
-    v.addEventListener('ended',()=>{
-      v.style.transition='opacity .6s';
-      v.style.opacity='0';
-      setTimeout(()=>wrapper.remove(),700);
-    });
-    wrapper.appendChild(v);
+
+      // Timer starten, Placeholder entfernen sobald Video läuft
+      v.addEventListener('play',()=>{
+        if(placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
+        if(S._pendingTimerSec){startTimer(S._pendingTimerSec);S._pendingTimerSec=null;}
+      },{once:true});
+
+      v.addEventListener('ended',showReplay);
+    };
+
+    placeholder.addEventListener('click',spawnVideo,{once:true});
     return wrapper;
   }
 
-  // audio (non-youtube) — custom play button only
-  const wrap=document.createElement('div');
-  wrap.className='audio-play-wrap';
-  wrap.innerHTML='<div style="font-size:2.8rem;margin-bottom:4px">🎵</div><div class="audio-play-lbl">Audio-Frage</div>';
-  const btn=document.createElement('button');
-  btn.className='audio-play-btn';
-  btn.textContent='▶';
-  const a=document.createElement('audio');
-  a.src=q.question;
-  a.volume=Math.max(0,Math.min(1,S.musicVolume));
-  if(start>0||dur>0){
-    a.addEventListener('loadedmetadata',()=>{
+  // ── Lokale Audio-Datei (Musik-Modus) ────────────────────
+  {
+    const wrapper=document.createElement('div');
+    wrapper.style.cssText='position:relative;width:100%;max-width:560px;margin:auto;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000';
+
+    // Placeholder: Blackscreen mit Musik-Emoji + "Guess the song" + Play-Button
+    const placeholder=document.createElement('div');
+    placeholder.style.cssText='position:absolute;inset:0;background:#000;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;cursor:pointer';
+    const guessEmoji=document.createElement('div');
+    guessEmoji.textContent='🎵';
+    guessEmoji.style.cssText='font-size:2.8rem;pointer-events:none;line-height:1';
+    const guessLabel=document.createElement('div');
+    guessLabel.textContent='Guess the song';
+    guessLabel.style.cssText='font-family:"Mountains of Christmas",cursive;font-size:1.6rem;color:var(--gold);text-shadow:0 0 24px rgba(212,168,67,.6);letter-spacing:1px;pointer-events:none';
+    const playBtn=document.createElement('div');
+    playBtn.style.cssText='width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#a0720a);display:flex;align-items:center;justify-content:center;font-size:2rem;box-shadow:0 8px 32px rgba(212,168,67,.45);transition:transform .15s,box-shadow .15s;pointer-events:none';
+    playBtn.innerHTML='▶';
+    placeholder.appendChild(guessEmoji);
+    placeholder.appendChild(guessLabel);
+    placeholder.appendChild(playBtn);
+    placeholder.addEventListener('mouseenter',()=>{playBtn.style.transform='scale(1.1)';playBtn.style.boxShadow='0 12px 40px rgba(212,168,67,.65)';});
+    placeholder.addEventListener('mouseleave',()=>{playBtn.style.transform='';playBtn.style.boxShadow='0 8px 32px rgba(212,168,67,.45)';});
+    wrapper.appendChild(placeholder);
+
+    const a=document.createElement('audio');
+    a.src=q.question;
+    a.volume=Math.max(0,Math.min(1,S.musicVolume));
+    wrapper.appendChild(a);
+
+    const showReplay=()=>{
       if(start>0) a.currentTime=start;
-    });
+      placeholder.style.cursor='pointer';
+      placeholder.style.pointerEvents='';
+      playBtn.style.display='flex';
+      placeholder.addEventListener('click',startAudio,{once:true});
+    };
+
+    const startAudio=()=>{
+      // Play-Button ausblenden → Blackscreen "Guess the song" bleibt sichtbar
+      playBtn.style.display='none';
+      placeholder.style.cursor='default';
+      placeholder.style.pointerEvents='none';
+      if(start>0) a.currentTime=start;
+      a.play().catch(()=>{});
+    };
+
     if(dur>0){
       a.addEventListener('timeupdate',()=>{
-        if(a.currentTime>=(start+dur)){a.pause();btn.textContent='▶';btn.classList.remove('playing');}
+        if(a.currentTime>=(start+dur)){a.pause();showReplay();}
       });
     }
+
+    // Timer starten sobald Audio läuft
+    a.addEventListener('play',()=>{
+      if(S._pendingTimerSec){startTimer(S._pendingTimerSec);S._pendingTimerSec=null;}
+    },{once:true});
+
+    a.addEventListener('ended',showReplay);
+
+    placeholder.addEventListener('click',startAudio,{once:true});
+    return wrapper;
   }
-  // Start timer when audio actually plays
-  a.addEventListener('play',()=>{
-    if(S._pendingTimerSec){startTimer(S._pendingTimerSec);S._pendingTimerSec=null;}
-  },{once:true});
-  btn.onclick=()=>{
-    if(a.paused){
-      a.play().catch(()=>{});
-      btn.textContent='⏸';
-      btn.classList.add('playing');
-    } else {
-      a.pause();
-      btn.textContent='▶';
-      btn.classList.remove('playing');
-    }
-  };
-  a.addEventListener('ended',()=>{
-    btn.textContent='▶';
-    btn.classList.remove('playing');
-    if(start>0) a.currentTime=start;
-  });
-  // Autoplay on open
-  a.addEventListener('canplay',()=>{
-    if(a.paused && !a._started){
-      a._started=true;
-      if(start>0) a.currentTime=start;
-      a.play().catch(()=>{});
-      btn.textContent='⏸';
-      btn.classList.add('playing');
-    }
-  },{once:true});
-  wrap.appendChild(btn);
-  wrap.appendChild(a);
-  return wrap;
 }
 
 // ════════════════════════════════════════════════════════

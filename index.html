@@ -1221,7 +1221,7 @@ function buildMediaEl(q){
       if(isIdle) return; // Guard: nicht doppelt aufrufen
       isIdle=true;
       stopHandled=false;
-      if(start>0) a.currentTime=start;
+      a.currentTime=start; // immer zurücksetzen, auch wenn start=0
       playBtn.style.display='flex';
       placeholder.style.cursor='pointer';
       placeholder.style.pointerEvents='';
@@ -1238,8 +1238,13 @@ function buildMediaEl(q){
     placeholder.addEventListener('click',()=>{
       if(!isIdle) return;
       setPlaying();
-      if(start>0) a.currentTime=start;
-      a.play().catch(()=>{});
+      const doPlay=()=>{
+        a.currentTime=start; // immer setzen, auch wenn start=0
+        a.play().catch(()=>{});
+      };
+      // Audio bereits geladen (z.B. Replay)? Direkt, sonst auf Metadaten warten
+      if(a.readyState>=1){ doPlay(); }
+      else{ a.addEventListener('loadedmetadata',doPlay,{once:true}); }
     });
 
     // Timer einmalig starten beim ersten play

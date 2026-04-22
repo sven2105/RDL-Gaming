@@ -1,5 +1,37 @@
+PROPRIETÄRE SOFTWARELIZENZ
 Copyright (c) 2026 Sven Riedel. https://github.com/sven2105
 
-All rights reserved.
+Alle Rechte vorbehalten.
 
-No permission is granted to use, copy, modify, or distribute this software without explicit permission.
+Diese Software und alle zugehörigen Dateien ("die Software") sind urheberrechtlich geschütztes Eigentum von Sven Riedel.
+
+Es wird KEINE Lizenz zur freien Nutzung, Vervielfältigung, Veränderung oder Weitergabe gewährt, soweit nachfolgend nicht ausdrücklich etwas anderes bestimmt ist.
+
+ERLAUBT:
+  - Die private, nicht-kommerzielle Nutzung der Software für eigene Zwecke.
+
+NICHT ERLAUBT (ohne ausdrückliche schriftliche Genehmigung):
+  - Weitergabe, Verkauf oder Unterlizenzierung der Software an Dritte.
+  - Veröffentlichung des Quellcodes oder von Teilen davon.
+  - Kommerzielle Nutzung jeglicher Art.
+  - Erstellung abgeleiteter Werke.
+  - Reverse Engineering, soweit gesetzlich nicht erlaubt.
+
+DRITTANBIETER-KOMPONENTEN:
+  Die Software verwendet folgende Komponenten Dritter, die unter eigenen Lizenzen stehen und von dieser Lizenz unberührt bleiben:
+
+  1. Schriftarten (SIL Open Font License 1.1)
+     - Mountains of Christmas (Copyright 2011 Tart Workshop)
+     - Playfair Display (Copyright 2011 Claus Eggers Sørensen)
+     - Nunito (Copyright 2014 Vernon Adams)
+     Vollständiger Lizenztext: https://scripts.sil.org/OFL
+
+  2. YouTube IFrame API
+     Proprietärer Dienst von Google LLC.
+     Nutzungsbedingungen: https://www.youtube.com/t/terms
+     Diese API ist kein Bestandteil dieser Software und wird nur bei Bedarf (YouTube-URLs) zur Laufzeit geladen.
+
+HAFTUNGSAUSSCHLUSS:
+  DIE SOFTWARE WIRD "WIE BESEHEN" BEREITGESTELLT, OHNE JEGLICHE GEWÄHRLEISTUNG, WEDER AUSDRÜCKLICH NOCH STILLSCHWEIGEND. IN KEINEM FALL HAFTET DER URHEBER FÜR SCHÄDEN, DIE DURCH DIE NUTZUNG DIESER SOFTWARE ENTSTEHEN.
+
+Für Lizenzanfragen: riedel-sven@gmx.net

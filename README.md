@@ -97,6 +97,7 @@ Der aktuelle Spielstand, Fragen und Einstellungen werden automatisch im **localS
 | YouTube IFrame API | Proprietärer Dienst von Google LLC – [Nutzungsbedingungen](https://www.youtube.com/t/terms) |
 
 Weitere Details siehe [NOTICE](NOTICE).
+
 ---
 
 ## Technische Voraussetzungen

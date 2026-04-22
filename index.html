@@ -1,4 +1,20 @@
 <!DOCTYPE html>
+<!--
+  Quiz App
+  Copyright (c) 2026 Sven Riedel. Alle Rechte vorbehalten.
+  Proprietäre Software – Nutzung, Vervielfältigung und Weitergabe
+  nur mit ausdrücklicher schriftlicher Genehmigung des Urhebers.
+  Siehe LICENSE Datei für vollständige Lizenzbedingungen.
+
+  Drittanbieter-Hinweise:
+  - Schriftarten (Mountains of Christmas, Playfair Display, Nunito)
+    lizenziert unter der SIL Open Font License 1.1 (OFL)
+    https://scripts.sil.org/OFL
+  - YouTube IFrame API (optional, wird nur bei YouTube-URLs geladen)
+    Proprietärer Dienst von Google LLC.
+    Nutzungsbedingungen: https://www.youtube.com/t/terms
+    Datenschutz: https://policies.google.com/privacy
+-->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -18,7 +34,7 @@
 html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--cream);transition:background .5s,color .5s}
 
 /* ── SNOW ── */
-#snow{position:fixed;inset:0;pointer-events:none;z-index:15;overflow:hidden;display:none}
+#snow{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
 .sf{position:absolute;top:-30px;animation:fall linear infinite;pointer-events:none;user-select:none}
 @keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
 
@@ -744,8 +760,6 @@ function createSnow(chars){
     c.appendChild(s);
   }
 }
-function showSnow(){ document.getElementById('snow').style.display='block'; }
-function hideSnow(){ document.getElementById('snow').style.display='none'; }
 
 // ════════════════════════════════════════════════════════
 //  THEME
@@ -941,7 +955,6 @@ function startGame(){
   S.teams=Array.from(document.querySelectorAll('#tni .setup-input'))
     .map(i=>({name:i.value.trim()||i.placeholder,score:0}));
   show('quiz-screen');
-  showSnow();
   renderBoard();
   renderScores();
 }
@@ -1139,6 +1152,10 @@ function buildMediaEl(q){
       if(window.YT && window.YT.Player){ initYT(); }
       else{
         if(!document.getElementById('yt-api-script')){
+          // Proprietärer Drittanbieter-Dienst (Google LLC / YouTube)
+          // Wird nur geladen wenn eine YouTube-URL als Frage hinterlegt ist.
+          // Dabei werden Daten (u.a. IP-Adresse) an Google-Server übertragen.
+          // Datenschutzhinweis: https://policies.google.com/privacy
           const s=document.createElement('script');
           s.id='yt-api-script';
           s.src='https://www.youtube.com/iframe_api';
@@ -1377,7 +1394,6 @@ function buildPixelImg(src,container){
 //  QUESTION MODAL
 // ════════════════════════════════════════════════════════
 function openQ(ci,pi){
-  hideSnow();
   S.cur={ci,pi};
   S.awardedTeams=new Set();
   const cat=S.cats[ci];
@@ -1491,7 +1507,6 @@ function closeQ(){
     .forEach(m=>{try{m.src='';m.pause&&m.pause();}catch(_){}});
   checkMultiplierTriggers();
   renderBoard();
-  showSnow();
 }
 
 // ════════════════════════════════════════════════════════
@@ -1572,7 +1587,6 @@ function switchTab(name){
 // ════════════════════════════════════════════════════════
 function showAdmin(){
   hide('quiz-screen');
-  hideSnow();
   show('admin-screen');
   renderQuestionsTab();
   if(activeTab==='categories') renderCategoriesTab();
@@ -1586,7 +1600,6 @@ function hideAdmin(){
   save();
   hide('admin-screen');
   show('quiz-screen');
-  showSnow();
   // Board und Scores mit den aktuellen Daten neu rendern
   if(S.teams.length > 0){
     renderBoard();
@@ -2061,7 +2074,6 @@ function doRestart(){
     S.appliedMultipliers=[];
     hide('admin-screen');
     show('quiz-screen');
-    showSnow();
     renderBoard();
     renderScores();
     toast('🔁 Fragen neu gestartet!');
@@ -2073,7 +2085,6 @@ function doRestart(){
     S.cur=null;
     S.appliedMultipliers=[];
     stopTimer();
-    hideSnow();
     // Reset setup steps
     document.getElementById('step-theme').style.display='block';
     document.getElementById('step-json').style.display='none';

@@ -1,126 +1,108 @@
 # Quiz App
 
-Eine browserbasierte, themenfähige Quiz-Anwendung im Jeopardy-Stil.  
-Entwickelt als Einzeldatei-HTML-App – kein Build-Prozess, kein Backend, keine Abhängigkeiten außer einem Browser.
+**Copyright © 2026 Sven Riedel. Alle Rechte vorbehalten.**
+Proprietäre Software – Nutzung, Vervielfältigung und Weitergabe nur mit ausdrücklicher schriftlicher Genehmigung des Urhebers.
 
 ---
 
-## Funktionsumfang
+## Beschreibung
 
-- **Kategorien & Fragen** – beliebig viele Kategorien und Frage-Stufen, frei konfigurierbar
-- **Medientypen** – Text, Bild (URL), Video (lokal oder YouTube), Audio (lokal oder YouTube)
-- **Themes** – Weihnachten, Ostern, Geburtstag, Hochzeit, Party (inkl. Partikel-Effekt)
-- **Teams** – 1–10 Teams mit individuellen Namen und Punktestand
-- **Punktemultiplikatoren** – konfigurierbare Multiplikatoren die nach einem bestimmten Prozentsatz gespielter Fragen ausgelöst werden
-- **Timer** – pro Frage-Stufe konfigurierbarer Standard-Timer, individuell pro Frage überschreibbar
-- **Admin-Panel** – vollständige Konfiguration im laufenden Betrieb über drei Tabs (Fragen / Kategorien / Einstellungen)
-- **Autosave** – alle Änderungen im Admin-Panel werden automatisch 1 Sekunde nach der letzten Eingabe im `localStorage` gespeichert
-- **Export / Import** – Fragenkatalog als JSON exportieren und wieder importieren
+Eine vollständig in sich geschlossene, browserbasierte Quiz-App für Gruppen und Events. Die gesamte Anwendung besteht aus **einer einzigen HTML-Datei** – kein Server, keine Installation, keine Abhängigkeiten nötig. Einfach die Datei im Browser öffnen und losspielen.
 
 ---
 
-## Schnellstart
+## Features
 
-1. `quiz_app.html` in einem modernen Browser öffnen (Chrome, Firefox, Edge, Safari)
+### Themes
+Die App unterstützt fünf wählbare Themes, die Farben, Partikeleffekte und Titel anpassen:
+
+| Theme | Icon | Partikeleffekte |
+|---|---|---|
+| Weihnachten | 🎄 | ❄ ❅ ❆ ✦ |
+| Ostern | 🐣 | 🌸 🌷 🥚 🐣 🌼 |
+| Geburtstag | 🎂 | 🎈 🎉 ⭐ ✨ 🎊 |
+| Hochzeit | 💍 | 💍 💐 🌹 💕 ✨ |
+| Party | 🎊 | 🎊 🎉 ⚡ 💫 🌟 |
+
+### Fragentypen
+Jede Frage kann einen der folgenden Inhaltstypen haben:
+
+- **Text** – klassische Frage als reiner Text
+- **Bild** – lokale Bilddatei hochladen (optional pixeliert darstellbar)
+- **Audio** – lokale Audiodatei mit eigenem Play/Pause-Button
+- **Video** – lokale Videodatei mit Lautstärkeregelung
+- **YouTube** – YouTube-URL direkt einbetten (lädt YouTube IFrame API bei Bedarf nach)
+
+### Spielablauf
+- Bis zu beliebig viele **Teams** spielen gleichzeitig
+- Teamnamen werden vor dem Spielstart individuell vergeben
+- Das **Spielbrett** zeigt Kategorien als Spalten und Punktwerte als Zeilen
+- Geklickte Felder öffnen die Frage in einem Modal-Fenster
+- Nach Anzeige der Antwort kann der Spielleiter Punkte manuell an beliebige Teams vergeben
+- Bereits beantwortete Felder werden ausgeblendet
+- Die **Punkteanzeige** am unteren Rand hebt das führende Team hervor
+
+### Punkte-Multiplikatoren
+Multiplikatoren können so konfiguriert werden, dass sie nach einem bestimmten Prozentsatz der gespielten Fragen automatisch aktiviert werden (z. B. ×2 nach 50 % der Fragen). Mehrere Multiplikatoren sind möglich und werden kumuliert.
+
+### Timer
+Jede Frage kann einen eigenen Countdown-Timer erhalten. Die Lautstärke des Timer-Tons ist einstellbar.
+
+---
+
+## Einrichtung & Bedienung
+
+### Start
+1. `fix_snow_UI_after_FOSS.html` im Browser öffnen
 2. Theme auswählen
-3. Fragenkatalog als `.json` Datei laden
+3. Fragenkatalog als `.json`-Datei laden (oder vorhandenen Speicher verwenden)
 4. Anzahl der Teams und Teamnamen eingeben
 5. Quiz starten
 
----
+### Settings-Panel
+Über den Button **⚙ Einstellungen** (oben rechts im Quiz) öffnet sich das Settings-Panel mit drei Reitern:
 
-## Fragenkatalog (JSON)
+**📝 Fragen**
+Alle Fragen und Antworten bearbeiten, Fragetyp wählen, Medien hochladen, Timer pro Frage setzen.
 
-Der Fragenkatalog kann über die Einstellungen (⚙ Einstellungen → Export) als JSON-Datei gesichert und wieder importiert werden.
+**📁 Kategorien**
+Kategorien anlegen, umbenennen, mit Emoji versehen, farblich anpassen oder löschen.
 
-**Struktur:**
-```json
-{
-  "cats": [
-    { "name": "Geografie", "emoji": "🌍", "color": "#1565C0" }
-  ],
-  "pts": [200, 500, 1000],
-  "timers": [30, 45, 60],
-  "qs": [
-    [
-      { "type": "text", "question": "Hauptstadt von Frankreich?", "answer": "Paris", "timer": null, "pixelated": false, "startTime": null, "duration": null }
-    ]
-  ],
-  "theme": "christmas",
-  "title": "🎄 Weihnachts Trivia Quiz 🎄"
-}
-```
-
-**Fragetypen:**
-
-| Typ | `type` | `question`-Feld |
-|---|---|---|
-| Text | `text` | Fragetext |
-| Bild | `image` | Bild-URL |
-| Video | `video` | Video-URL oder Blob |
-| Audio | `audio` | Audio-URL, Blob oder YouTube-URL |
-
----
-
-## Einstellungen
-
-Erreichbar über den **⚙ Einstellungen** Button während des Spiels.
-
-### Tab: Fragen
-- Fragenstruktur (Anzahl Stufen, Punkte, Timer) bearbeiten
-- Alle Fragen aller Kategorien bearbeiten
-- Mediadateien lokal laden
-
-### Tab: Kategorien
-- Kategorien hinzufügen, umbenennen, Emoji und Farbe ändern
-- Kategorien löschen (löscht alle zugehörigen Fragen)
-
-### Tab: Einstellungen
+**🎨 Optionen**
 - Theme wechseln
-- Quiz-Titel bearbeiten
-- Punktemultiplikatoren konfigurieren
-- Lautstärken für Timer-Ton, Video und Musik einstellen
+- Quiz-Titel anpassen
+- Punktwerte und Timer-Stufen konfigurieren
+- Punkte-Multiplikatoren verwalten
+- Lautstärke für Timer, Video und Musik einstellen
+
+### Import / Export
+- **Export:** Speichert den gesamten Fragenkatalog (inkl. eingebetteter Medien) als `.json`-Datei
+- **Import:** Lädt eine zuvor exportierte `.json`-Datei und stellt alle Fragen wieder her
 
 ---
 
-## Technische Details
+## Datenspeicherung
 
-| Merkmal | Beschreibung |
+Der aktuelle Spielstand, Fragen und Einstellungen werden automatisch im **localStorage** des Browsers gesichert. Änderungen im Settings-Panel werden nach 1 Sekunde Inaktivität automatisch gespeichert. Beim Schließen des Panels wird zusätzlich sofort gespeichert.
+
+> **Hinweis:** Der localStorage ist browserspezifisch. Für dauerhafte Sicherung bitte regelmäßig exportieren.
+
+---
+
+## Drittanbieter-Hinweise
+
+| Komponente | Lizenz |
 |---|---|
-| Technologie | Vanilla HTML / CSS / JavaScript (ES6+) |
-| Abhängigkeiten | Keine npm / build-Abhängigkeiten |
-| Datenspeicherung | Ausschließlich `localStorage` des Browsers |
-| Offline-fähig | Ja (ohne YouTube-Funktion vollständig offline nutzbar) |
-| Minimalgröße | Eine einzelne `.html` Datei |
+| Mountains of Christmas, Playfair Display, Nunito (Google Fonts) | SIL Open Font License 1.1 (OFL) |
+| YouTube IFrame API | Proprietärer Dienst von Google LLC – [Nutzungsbedingungen](https://www.youtube.com/t/terms) |
 
 ---
 
-## Drittanbieter-Abhängigkeiten
+## Technische Voraussetzungen
 
-| Komponente | Typ | Wann aktiv |
-|---|---|---|
-| Google Fonts CDN | Extern | Beim Laden der Seite |
-| YouTube IFrame API | Extern (proprietär) | Nur bei Klick auf Play mit YouTube-URL |
-
-> **Hinweis:** Es ist geplant, Google Fonts künftig lokal zu hosten, um externe Verbindungen beim Seitenaufruf zu vermeiden.
-
-Weitere Details siehe [NOTICE](NOTICE).
-
----
-
-## Dateistruktur (Deployment)
-
-```
-/
-├── quiz_app.html        ← Hauptanwendung
-├── impressum.html       ← Impressum (§ 5 TMG)
-├── datenschutz.html     ← Datenschutzerklärung (DSGVO)
-├── LICENSE              ← Lizenzbedingungen
-├── NOTICE               ← Drittanbieter-Attributionen
-└── README.md            ← Diese Datei
-```
-
----
+- Moderner Browser (Chrome, Firefox, Edge, Safari)
+- Internetverbindung nur für Google Fonts und YouTube-Einbettung erforderlich
+- Keine Installation, kein Server, keine Build-Tools
 
 ## Lizenz
 

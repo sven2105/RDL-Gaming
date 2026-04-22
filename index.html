@@ -42,7 +42,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10}
 #setup-screen{background:radial-gradient(ellipse at 50% 30%,#0f3d1c 0%,var(--bg) 70%)}
 #quiz-screen{background:radial-gradient(ellipse at 50% 0%,#0f3d1c 0%,var(--bg) 65%);justify-content:flex-start;padding:0}
-#admin-screen{background:#060e06;justify-content:flex-start;align-items:flex-start;overflow-y:auto;padding:0}
+#settings-screen{background:#060e06;justify-content:flex-start;align-items:flex-start;overflow-y:auto;padding:0}
 
 /* ── SETUP ── */
 .setup-card{background:linear-gradient(145deg,rgba(15,61,28,.95),rgba(6,18,9,.97));border:2px solid var(--card-border);border-radius:22px;padding:44px 40px;max-width:480px;width:92%;text-align:center;box-shadow:0 0 60px rgba(212,168,67,.25),inset 0 1px 0 rgba(255,255,255,.07);transition:border-color .4s,box-shadow .4s}
@@ -71,8 +71,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .qhdr{text-align:center;padding:8px 16px 4px;flex-shrink:0;position:relative;z-index:2}
 .qhdr-stars{color:var(--gold);font-size:.72rem;letter-spacing:6px;opacity:.7}
 .qhdr-title{font-family:'Mountains of Christmas',cursive;font-size:1.9rem;color:var(--gold);text-shadow:0 0 25px rgba(212,168,67,.55);line-height:1.1}
-.admin-fab{position:fixed;top:10px;right:14px;background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.5);color:var(--gold);padding:5px 13px;border-radius:20px;cursor:pointer;font-size:.72rem;font-family:'Nunito',sans-serif;font-weight:700;z-index:100;transition:all .2s;letter-spacing:.5px}
-.admin-fab:hover{background:rgba(212,168,67,.25)}
+.settings-fab{position:fixed;top:10px;right:14px;background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.5);color:var(--gold);padding:5px 13px;border-radius:20px;cursor:pointer;font-size:.72rem;font-family:'Nunito',sans-serif;font-weight:700;z-index:100;transition:all .2s;letter-spacing:.5px}
+.settings-fab:hover{background:rgba(212,168,67,.25)}
 
 /* ── BOARD ── */
 .board-wrap{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 6px 6px;position:relative;z-index:2}
@@ -151,11 +151,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .confirm-msg{font-size:.85rem;color:var(--silver);margin-bottom:22px;line-height:1.5}
 .confirm-btns{display:flex;gap:12px;justify-content:center}
 
-/* ── ADMIN ── */
-.admin-wrap{width:100%;max-width:1500px;margin:0 auto;padding:20px}
-.admin-hdr{display:flex;align-items:center;gap:10px;padding:0 0 16px;border-bottom:1px solid rgba(212,168,67,.3);margin-bottom:0;flex-wrap:wrap}
-.admin-ttl{font-family:'Mountains of Christmas',cursive;font-size:1.9rem;color:var(--gold)}
-.admin-acts{display:flex;gap:7px;flex-wrap:wrap;margin-left:auto}
+/* ── SETTINGS ── */
+.settings-wrap{width:100%;max-width:1500px;margin:0 auto;padding:20px}
+.settings-hdr{display:flex;align-items:center;gap:10px;padding:0 0 16px;border-bottom:1px solid rgba(212,168,67,.3);margin-bottom:0;flex-wrap:wrap}
+.settings-ttl{font-family:'Mountains of Christmas',cursive;font-size:1.9rem;color:var(--gold)}
+.settings-acts{display:flex;gap:7px;flex-wrap:wrap;margin-left:auto}
 
 /* tabs */
 .tab-bar{display:flex;gap:4px;padding:14px 0 0;margin-bottom:18px;border-bottom:1px solid rgba(212,168,67,.2)}
@@ -165,13 +165,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .tab-panel{display:none}
 .tab-panel.active{display:block}
 
-/* admin fields */
+/* settings fields */
 .global-box{background:rgba(255,255,255,.03);border:1px solid rgba(212,168,67,.2);border-radius:14px;padding:16px 18px;margin-bottom:18px}
 .global-box h3{color:var(--gold);font-size:.78rem;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
 .global-inner{display:flex;gap:14px;flex-wrap:wrap}
 .gfield{flex:1;min-width:140px}
 .gfield label{display:block;font-size:.7rem;color:var(--silver);margin-bottom:4px}
-.admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-bottom:24px}
+.settings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-bottom:24px}
 .acard{background:rgba(255,255,255,.035);border:1px solid rgba(212,168,67,.18);border-radius:14px;padding:16px}
 .acard-hdr{display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .adot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
@@ -250,7 +250,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 @keyframes mpulse{from{text-shadow:0 0 40px rgba(212,168,67,.7),0 0 80px rgba(212,168,67,.3)}to{text-shadow:0 0 80px rgba(212,168,67,1),0 0 160px rgba(212,168,67,.7)}}
 .mult-subtitle{font-size:1rem;color:var(--cream);font-family:'Nunito',sans-serif;font-weight:700;padding:8px 24px;background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.35);border-radius:30px}
 .mult-total{font-size:.8rem;color:var(--silver);font-family:'Nunito',sans-serif;margin-top:4px}
-/* ── MULTIPLIER ADMIN ── */
+/* ── MULTIPLIER SETTINGS ── */
 .mult-row{background:rgba(255,255,255,.04);border:1px solid rgba(212,168,67,.18);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .mult-row .mf{display:flex;flex-direction:column;gap:3px;flex:1;min-width:80px}
 .mult-row .mf label{font-size:.63rem;color:var(--silver);text-transform:uppercase;letter-spacing:.5px}
@@ -330,7 +330,7 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
     <div class="qhdr-stars" id="qhdr-stars">★ ★ ★ ★ ★ ★ ★</div>
     <div class="qhdr-title" id="qhdr-title">🎄 Weihnachts Trivia Quiz 🎄</div>
   </div>
-  <button class="admin-fab" onclick="showAdmin()">⚙ Einstellungen</button>
+  <button class="settings-fab" onclick="showSettings()">⚙ Einstellungen</button>
   <div class="board-wrap">
     <table class="board-table" id="board"></table>
   </div>
@@ -393,17 +393,17 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
   </div>
 </div>
 
-<!-- ════════════════════════════════ ADMIN ════════════════════════════════ -->
-<div class="screen" id="admin-screen" style="display:none">
-  <div class="admin-wrap">
-    <div class="admin-hdr">
-      <div class="admin-ttl">⚙ Einstellungen</div>
-      <div class="admin-acts">
+<!-- ════════════════════════════════ SETTINGS ════════════════════════════════ -->
+<div class="screen" id="settings-screen" style="display:none">
+  <div class="settings-wrap">
+    <div class="settings-hdr">
+      <div class="settings-ttl">⚙ Einstellungen</div>
+      <div class="settings-acts">
         <button class="btn btn-blue" onclick="askRestartQuestions()" title="Fragen neu starten">🔁 Fragen neu starten</button>
         <button class="btn btn-red-sharp" onclick="askRestart()" title="Spiel neu starten">🎮 Spiel neu starten</button>
         <button class="btn btn-out" onclick="importQ()">📥 Import</button>
         <button class="btn btn-out" onclick="exportQ()">📤 Export</button>
-        <button class="btn btn-red" style="background:rgba(139,0,0,.7)" onclick="hideAdmin()">✕ Schließen</button>
+        <button class="btn btn-red" style="background:rgba(139,0,0,.7)" onclick="hideSettings()">✕ Schließen</button>
       </div>
     </div>
 
@@ -418,7 +418,7 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
       <div class="global-box" id="fragenstruktur-box">
         <!-- dynamisch befüllt von renderQuestionsTab() -->
       </div>
-      <div class="admin-grid" id="admin-grid"></div>
+      <div class="settings-grid" id="settings-grid"></div>
     </div>
 
     <!-- KATEGORIEN TAB -->
@@ -461,7 +461,7 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
           Lege fest, nach welchem Prozentsatz der gespielten Fragen die verbleibenden Punkte multipliziert werden.
           Mehrere Stufen stapeln sich: 2× nach 30% und 4× nach 60% ergibt <strong style="color:var(--gold)">8× Basispunkte</strong> ab 60%.
         </div>
-        <div id="mult-admin-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+        <div id="mult-settings-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
         <div style="background:rgba(212,168,67,.05);border:1px dashed rgba(212,168,67,.35);border-radius:14px;padding:14px 16px">
           <h3 style="color:var(--gold);font-size:.78rem;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px">➕ Neuer Multiplikator</h3>
           <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
@@ -526,7 +526,7 @@ const THEMES = {
     cream:'#f5edd8',silver:'#b0b0b0',
     boardBg:'radial-gradient(ellipse at 50% 0%,#0f3d1c 0%,#061209 65%)',
     setupBg:'radial-gradient(ellipse at 50% 30%,#0f3d1c 0%,#061209 70%)',
-    adminBg:'#060e06',
+    settingsBg:'#060e06',
     particles:['❄','❅','❆','✦','·','*'],
     defaultTitle:'🎄 Weihnachts Trivia Quiz 🎄',
     icon:'🎄',sub:'⭐ Das festlichste Quiz des Jahres ⭐',
@@ -539,7 +539,7 @@ const THEMES = {
     cream:'#fef0ff',silver:'#c090d0',
     boardBg:'radial-gradient(ellipse at 50% 0%,#4a1a8c 0%,#12082a 65%)',
     setupBg:'radial-gradient(ellipse at 50% 30%,#3a1e6e 0%,#12082a 70%)',
-    adminBg:'#0d0620',
+    settingsBg:'#0d0620',
     particles:['🌸','🌷','🥚','🐣','🌼','·'],
     defaultTitle:'🐣 Oster Trivia Quiz 🐣',
     icon:'🐣',sub:'🌸 Auf der Suche nach Osterwissen 🌸',
@@ -552,7 +552,7 @@ const THEMES = {
     cream:'#fff0fc',silver:'#d0a0c8',
     boardBg:'radial-gradient(ellipse at 50% 0%,#4a0090 0%,#0d0018 65%)',
     setupBg:'radial-gradient(ellipse at 50% 30%,#2a0060 0%,#0d0018 70%)',
-    adminBg:'#090012',
+    settingsBg:'#090012',
     particles:['🎈','🎉','⭐','✨','🎊','·'],
     defaultTitle:'🎂 Geburtstags Quiz 🎂',
     icon:'🎂',sub:'🎉 Wissen ist das beste Geschenk! 🎉',
@@ -565,7 +565,7 @@ const THEMES = {
     cream:'#fdf5f8',silver:'#c0a8b8',
     boardBg:'radial-gradient(ellipse at 50% 0%,#4a2040 0%,#100c0f 65%)',
     setupBg:'radial-gradient(ellipse at 50% 30%,#301f2e 0%,#100c0f 70%)',
-    adminBg:'#0a080c',
+    settingsBg:'#0a080c',
     particles:['💍','💐','🌹','💕','✨','·'],
     defaultTitle:'💍 Hochzeits Quiz 💍',
     icon:'💍',sub:'💕 Auf in den Wissens-Bund fürs Leben 💕',
@@ -578,7 +578,7 @@ const THEMES = {
     cream:'#e0faff',silver:'#80a8c0',
     boardBg:'radial-gradient(ellipse at 50% 0%,#1a0a60 0%,#050514 65%)',
     setupBg:'radial-gradient(ellipse at 50% 30%,#0f0f44 0%,#050514 70%)',
-    adminBg:'#020210',
+    settingsBg:'#020210',
     particles:['🎊','🎉','⚡','💫','🌟','·'],
     defaultTitle:'🎊 Party Quiz 🎊',
     icon:'🎊',sub:'⚡ Die Party-Wissens-Challenge ⚡',
@@ -784,10 +784,10 @@ function applyTheme(id,updateTitle){
   r.setProperty('--score-border',t.gold+'99');
   const ss=document.getElementById('setup-screen');
   const qs=document.getElementById('quiz-screen');
-  const as=document.getElementById('admin-screen');
+  const as=document.getElementById('settings-screen');
   if(ss) ss.style.background=t.setupBg;
   if(qs) qs.style.background=t.boardBg;
-  if(as) as.style.background=t.adminBg;
+  if(as) as.style.background=t.settingsBg;
   // Setup card background tinted to theme
   const sc=document.querySelector('.setup-card');
   if(sc) sc.style.background=`linear-gradient(145deg,${t.gd}f2,${t.bg}f8)`;
@@ -815,7 +815,7 @@ function applyTheme(id,updateTitle){
     S.title=t.defaultTitle;
   }
   updateTitleDisplay();
-  // Mark theme cards (admin + setup picker)
+  // Mark theme cards (settings + setup picker)
   document.querySelectorAll('.theme-card,.theme-pick-card').forEach(c=>{
     c.classList.toggle('selected',c.dataset.tid===id);
     c.classList.toggle('tsel',c.dataset.tid===id);
@@ -1571,7 +1571,7 @@ function tickUI(v,max){
 }
 
 // ════════════════════════════════════════════════════════
-//  ADMIN – TABS
+//  SETTINGS – TABS
 // ════════════════════════════════════════════════════════
 let activeTab='questions';
 function switchTab(name){
@@ -1588,23 +1588,23 @@ function switchTab(name){
 }
 
 // ════════════════════════════════════════════════════════
-//  ADMIN – SHOW / HIDE
+//  SETTINGS – SHOW / HIDE
 // ════════════════════════════════════════════════════════
-function showAdmin(){
+function showSettings(){
   hide('quiz-screen');
   hideSnow();
-  show('admin-screen');
+  show('settings-screen');
   renderQuestionsTab();
   if(activeTab==='categories') renderCategoriesTab();
   if(activeTab==='settings') renderSettingsTab();
 }
-function hideAdmin(){
+function hideSettings(){
   // Ausstehenden Autosave sofort ausführen, damit nichts verloren geht
   clearTimeout(_autoSaveTimer);
   saveCategoryEdits();
   saveQContent();
   save();
-  hide('admin-screen');
+  hide('settings-screen');
   show('quiz-screen');
   showSnow();
   // Board und Scores mit den aktuellen Daten neu rendern
@@ -1615,7 +1615,7 @@ function hideAdmin(){
 }
 
 // ════════════════════════════════════════════════════════
-//  ADMIN – QUESTIONS TAB
+//  SETTINGS – QUESTIONS TAB
 // ════════════════════════════════════════════════════════
 function renderQuestionsTab(){
   syncPTS();
@@ -1646,7 +1646,7 @@ function renderQuestionsTab(){
   box.innerHTML=structHtml;
 
   // ── Fragen Grid ──
-  const grid=document.getElementById('admin-grid');
+  const grid=document.getElementById('settings-grid');
   grid.innerHTML='';
   if(S.pts.length===0){
     grid.innerHTML='<div style="color:var(--silver);font-size:.82rem;padding:12px">Keine Frage-Stufen definiert. Füge oben mindestens eine Stufe hinzu.</div>';
@@ -1730,7 +1730,7 @@ function onTC(ci,pi){
 }
 
 // ════════════════════════════════════════════════════════
-//  ADMIN – QUESTION STRUCTURE MANAGEMENT
+//  SETTINGS – QUESTION STRUCTURE MANAGEMENT
 // ════════════════════════════════════════════════════════
 function applyQStructure(){
   // Read current pts+timers from inputs before applying
@@ -1893,7 +1893,7 @@ function addCategory(){
 }
 
 // ════════════════════════════════════════════════════════
-//  ADMIN – SETTINGS TAB
+//  SETTINGS – SETTINGS TAB
 // ════════════════════════════════════════════════════════
 function updateVolFill(el){
   const pct=(el.value-el.min)/(el.max-el.min)*100;
@@ -1912,7 +1912,7 @@ function renderSettingsTab(){
   });
   const ti=document.getElementById('quiz-title-inp');
   if(ti) ti.value=S.title;
-  renderMultiplierAdmin();
+  renderMultiplierSettings();
   // Sync volume sliders
   [['timer',S.timerVolume],['video',S.videoVolume],['music',S.musicVolume]].forEach(([k,v])=>{
     const pct=Math.round(v*100);
@@ -1924,17 +1924,17 @@ function renderSettingsTab(){
 }
 
 // ════════════════════════════════════════════════════════
-//  ADMIN – SAVE / EXPORT / IMPORT
+//  SETTINGS – SAVE / EXPORT / IMPORT
 // ════════════════════════════════════════════════════════
-//  ADMIN – AUTO-SAVE
+//  SETTINGS – AUTO-SAVE
 // ════════════════════════════════════════════════════════
 let _autoSaveTimer = null;
 function scheduleAutoSave(){
   clearTimeout(_autoSaveTimer);
-  _autoSaveTimer = setTimeout(autoSaveAdmin, 1000);
+  _autoSaveTimer = setTimeout(autoSaveSettings, 1000);
 }
 
-function autoSaveAdmin(){
+function autoSaveSettings(){
   // Read pts+timers from UI rows; validate softly (skip if still being edited)
   const newPts=[], newTimers=[];
   let structureValid = true;
@@ -2075,11 +2075,11 @@ function closeConfirm(){
 function doRestart(){
   closeConfirm();
   if(_restartType === 'questions'){
-    // Reset scores and used cells, close admin, stay in quiz
+    // Reset scores and used cells, close settings, stay in quiz
     S.used=new Set();
     S.teams.forEach(t=>t.score=0);
     S.appliedMultipliers=[];
-    hide('admin-screen');
+    hide('settings-screen');
     show('quiz-screen');
     showSnow();
     renderBoard();
@@ -2099,7 +2099,7 @@ function doRestart(){
     document.getElementById('step-json').style.display='none';
     document.getElementById('step-count').style.display='none';
     document.getElementById('step-names').style.display='none';
-    hide('admin-screen');
+    hide('settings-screen');
     hide('quiz-screen');
     show('setup-screen');
     toast('🔄 Spiel neu gestartet!');
@@ -2157,9 +2157,9 @@ function showMultiplierAnimation(factors){
   },4000);
 }
 
-// ── Admin UI for multipliers ──
-function renderMultiplierAdmin(){
-  const wrap=document.getElementById('mult-admin-list');
+// ── Settings UI for multipliers ──
+function renderMultiplierSettings(){
+  const wrap=document.getElementById('mult-settings-list');
   if(!wrap) return;
   wrap.innerHTML='';
   if(S.multipliers.length===0){
@@ -2203,7 +2203,7 @@ function addMultiplier(){
   if(at<1||at>99){toast('❌ Prozent muss zwischen 1 und 99 liegen');return;}
   S.multipliers.push({at,factor});
   save();
-  renderMultiplierAdmin();
+  renderMultiplierSettings();
   atEl.value='50';
   toast(`✓ Multiplikator ×${factor} nach ${at}% hinzugefügt`);
 }
@@ -2212,7 +2212,7 @@ function removeMultiplier(i){
   // Fix up appliedMultipliers indices
   S.appliedMultipliers=S.appliedMultipliers.filter(x=>x<S.multipliers.length);
   save();
-  renderMultiplierAdmin();
+  renderMultiplierSettings();
   toast('🗑 Multiplikator entfernt');
 }
 function saveMultiplierEdits(){
@@ -2222,7 +2222,7 @@ function saveMultiplierEdits(){
     if(atEl) S.multipliers[i].at=parseInt(atEl.value)||S.multipliers[i].at;
     if(facEl) S.multipliers[i].factor=parseInt(facEl.value)||S.multipliers[i].factor;
   });
-  renderMultiplierAdmin();
+  renderMultiplierSettings();
 }
 
 // ════════════════════════════════════════════════════════
@@ -2273,9 +2273,9 @@ applyTheme(S.theme,false);
 updateTitleDisplay();
 renderThemePicker();
 document.getElementById('tc-inp').addEventListener('keydown',e=>{if(e.key==='Enter')goNames();});
-// Auto-save: trigger on any input or change inside the admin panel
-document.getElementById('admin-screen').addEventListener('input', scheduleAutoSave);
-document.getElementById('admin-screen').addEventListener('change', scheduleAutoSave);
+// Auto-save: trigger on any input or change inside the settings panel
+document.getElementById('settings-screen').addEventListener('input', scheduleAutoSave);
+document.getElementById('settings-screen').addEventListener('change', scheduleAutoSave);
 show('setup-screen');
 </script>
 </body>

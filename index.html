@@ -760,6 +760,8 @@ function createSnow(chars){
     c.appendChild(s);
   }
 }
+function showSnow(){ document.getElementById('snow').style.display='block'; }
+function hideSnow(){ document.getElementById('snow').style.display='none'; }
 
 // ════════════════════════════════════════════════════════
 //  THEME
@@ -955,6 +957,7 @@ function startGame(){
   S.teams=Array.from(document.querySelectorAll('#tni .setup-input'))
     .map(i=>({name:i.value.trim()||i.placeholder,score:0}));
   show('quiz-screen');
+  showSnow();
   renderBoard();
   renderScores();
 }
@@ -1394,6 +1397,7 @@ function buildPixelImg(src,container){
 //  QUESTION MODAL
 // ════════════════════════════════════════════════════════
 function openQ(ci,pi){
+  hideSnow();
   S.cur={ci,pi};
   S.awardedTeams=new Set();
   const cat=S.cats[ci];
@@ -1507,6 +1511,7 @@ function closeQ(){
     .forEach(m=>{try{m.src='';m.pause&&m.pause();}catch(_){}});
   checkMultiplierTriggers();
   renderBoard();
+  showSnow();
 }
 
 // ════════════════════════════════════════════════════════
@@ -1587,6 +1592,7 @@ function switchTab(name){
 // ════════════════════════════════════════════════════════
 function showAdmin(){
   hide('quiz-screen');
+  hideSnow();
   show('admin-screen');
   renderQuestionsTab();
   if(activeTab==='categories') renderCategoriesTab();
@@ -1600,6 +1606,7 @@ function hideAdmin(){
   save();
   hide('admin-screen');
   show('quiz-screen');
+  showSnow();
   // Board und Scores mit den aktuellen Daten neu rendern
   if(S.teams.length > 0){
     renderBoard();
@@ -2074,6 +2081,7 @@ function doRestart(){
     S.appliedMultipliers=[];
     hide('admin-screen');
     show('quiz-screen');
+    showSnow();
     renderBoard();
     renderScores();
     toast('🔁 Fragen neu gestartet!');
@@ -2085,6 +2093,7 @@ function doRestart(){
     S.cur=null;
     S.appliedMultipliers=[];
     stopTimer();
+    hideSnow();
     // Reset setup steps
     document.getElementById('step-theme').style.display='block';
     document.getElementById('step-json').style.display='none';

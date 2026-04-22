@@ -219,7 +219,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .qs-apply{background:linear-gradient(135deg,#2e7d32,#1a4f1e);color:#90ee90;border:none;border-radius:18px;padding:7px 16px;font-size:.8rem;font-weight:900;font-family:'Nunito',sans-serif;cursor:pointer;transition:all .2s;margin-left:auto}
 .qs-apply:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.3)}
 .qs-warn{font-size:.72rem;color:#ff8c5a;margin-top:6px;padding:8px 12px;background:rgba(255,100,0,.1);border-radius:8px;border-left:3px solid #ff6422}
-.settings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:20px}
 .theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px}
 .theme-card{background:rgba(255,255,255,.04);border:2px solid rgba(212,168,67,.2);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all .2s}
 .theme-card:hover{border-color:rgba(212,168,67,.5);background:rgba(212,168,67,.08)}
@@ -268,10 +267,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .audio-play-wrap .pausing{background:linear-gradient(135deg,#1976d2,#0d47a1)}
 .audio-play-lbl{font-size:.78rem;color:var(--silver);letter-spacing:1px;text-transform:uppercase}
 
-input[type="color"]{-webkit-appearance:none;width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;padding:2px;background:none}
+input[type="color"]{-webkit-appearance:none;appearance:none;width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;padding:2px;background:none}
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-input[type="number"]{-moz-appearance:textfield}
+input[type="number"]{-moz-appearance:textfield;appearance:textfield}
 .vol-row{display:flex;flex-direction:column;gap:6px;width:100%}
 .vol-row label{font-size:.72rem;color:var(--silver);display:flex;justify-content:space-between;align-items:center}
 .vol-row label span{color:var(--goldt);font-weight:700;min-width:38px;text-align:right}
@@ -521,8 +520,8 @@ let PTS = [200,500,1000];
 const THEMES = {
   christmas:{
     label:'🎄 Weihnachten',
-    bg:'#061209',bgMid:'#0c1f11',gd:'#0f3d1c',
-    gold:'#d4a843',goldt:'#f0c060',red:'#c0392b',
+    bg:'#061209',bgMid:'#0c1f11',gd:'#0f3d1c',gm:'#1a5c2e',
+    gold:'#d4a843',goldt:'#f0c060',red:'#c0392b',redd:'#8b0000',
     cream:'#f5edd8',silver:'#b0b0b0',
     boardBg:'radial-gradient(ellipse at 50% 0%,#0f3d1c 0%,#061209 65%)',
     setupBg:'radial-gradient(ellipse at 50% 30%,#0f3d1c 0%,#061209 70%)',
@@ -534,8 +533,8 @@ const THEMES = {
   },
   easter:{
     label:'🐣 Ostern',
-    bg:'#12082a',bgMid:'#1e1040',gd:'#3a1e6e',
-    gold:'#c872ff',goldt:'#e0aaff',red:'#ff6baa',
+    bg:'#12082a',bgMid:'#1e1040',gd:'#3a1e6e',gm:'#5a2e9e',
+    gold:'#c872ff',goldt:'#e0aaff',red:'#ff6baa',redd:'#cc1166',
     cream:'#fef0ff',silver:'#c090d0',
     boardBg:'radial-gradient(ellipse at 50% 0%,#4a1a8c 0%,#12082a 65%)',
     setupBg:'radial-gradient(ellipse at 50% 30%,#3a1e6e 0%,#12082a 70%)',
@@ -547,8 +546,8 @@ const THEMES = {
   },
   birthday:{
     label:'🎂 Geburtstag',
-    bg:'#0d0018',bgMid:'#180030',gd:'#2a0060',
-    gold:'#ff6ec7',goldt:'#ff9de2',red:'#ff3366',
+    bg:'#0d0018',bgMid:'#180030',gd:'#2a0060',gm:'#4a00a0',
+    gold:'#ff6ec7',goldt:'#ff9de2',red:'#ff3366',redd:'#cc0033',
     cream:'#fff0fc',silver:'#d0a0c8',
     boardBg:'radial-gradient(ellipse at 50% 0%,#4a0090 0%,#0d0018 65%)',
     setupBg:'radial-gradient(ellipse at 50% 30%,#2a0060 0%,#0d0018 70%)',
@@ -560,8 +559,8 @@ const THEMES = {
   },
   wedding:{
     label:'💍 Hochzeit',
-    bg:'#100c0f',bgMid:'#1c1220',gd:'#301f2e',
-    gold:'#d4a843',goldt:'#e8c870',red:'#c08090',
+    bg:'#100c0f',bgMid:'#1c1220',gd:'#301f2e',gm:'#4a2f44',
+    gold:'#d4a843',goldt:'#e8c870',red:'#c08090',redd:'#8b4050',
     cream:'#fdf5f8',silver:'#c0a8b8',
     boardBg:'radial-gradient(ellipse at 50% 0%,#4a2040 0%,#100c0f 65%)',
     setupBg:'radial-gradient(ellipse at 50% 30%,#301f2e 0%,#100c0f 70%)',
@@ -573,8 +572,8 @@ const THEMES = {
   },
   party:{
     label:'🎊 Party',
-    bg:'#050514',bgMid:'#0a0a28',gd:'#0f0f44',
-    gold:'#00ffcc',goldt:'#66ffee',red:'#ff0066',
+    bg:'#050514',bgMid:'#0a0a28',gd:'#0f0f44',gm:'#1a1a66',
+    gold:'#00ffcc',goldt:'#66ffee',red:'#ff0066',redd:'#aa0044',
     cream:'#e0faff',silver:'#80a8c0',
     boardBg:'radial-gradient(ellipse at 50% 0%,#1a0a60 0%,#050514 65%)',
     setupBg:'radial-gradient(ellipse at 50% 30%,#0f0f44 0%,#050514 70%)',
@@ -773,9 +772,11 @@ function applyTheme(id,updateTitle){
   r.setProperty('--bg',t.bg);
   r.setProperty('--bg-mid',t.bgMid);
   r.setProperty('--gd',t.gd);
+  r.setProperty('--gm',t.gm||t.gd);
   r.setProperty('--gold',t.gold);
   r.setProperty('--goldt',t.goldt);
   r.setProperty('--red',t.red);
+  r.setProperty('--redd',t.redd||t.red);
   r.setProperty('--cream',t.cream);
   r.setProperty('--silver',t.silver);
   // Theme-aware setup card border + score bar
@@ -956,6 +957,7 @@ function goNames(){
 function startGame(){
   S.teams=Array.from(document.querySelectorAll('#tni .setup-input'))
     .map(i=>({name:i.value.trim()||i.placeholder,score:0}));
+  hide('setup-screen');
   show('quiz-screen');
   showSnow();
   renderBoard();
@@ -1278,7 +1280,7 @@ function buildMediaEl(q){
     placeholder.appendChild(guessEmoji);
     placeholder.appendChild(guessLabel);
     placeholder.appendChild(playBtn);
-    placeholder.addEventListener('mouseenter',()=>{if(isIdle){playBtn.style.transform='scale(1.1)';playBtn.style.boxShadow='0 12px 40px rgba(212,168,67,.65)';}});
+    placeholder.addEventListener('mouseenter',()=>{if(audioState==='idle'){playBtn.style.transform='scale(1.1)';playBtn.style.boxShadow='0 12px 40px rgba(212,168,67,.65)';}});
     placeholder.addEventListener('mouseleave',()=>{playBtn.style.transform='';playBtn.style.boxShadow='0 8px 32px rgba(212,168,67,.45)';});
     wrapper.appendChild(placeholder);
 
@@ -2222,7 +2224,6 @@ function saveMultiplierEdits(){
     if(atEl) S.multipliers[i].at=parseInt(atEl.value)||S.multipliers[i].at;
     if(facEl) S.multipliers[i].factor=parseInt(facEl.value)||S.multipliers[i].factor;
   });
-  renderMultiplierSettings();
 }
 
 // ════════════════════════════════════════════════════════
@@ -2276,7 +2277,6 @@ document.getElementById('tc-inp').addEventListener('keydown',e=>{if(e.key==='Ent
 // Auto-save: trigger on any input or change inside the settings panel
 document.getElementById('settings-screen').addEventListener('input', scheduleAutoSave);
 document.getElementById('settings-screen').addEventListener('change', scheduleAutoSave);
-show('setup-screen');
 </script>
 </body>
 </html>

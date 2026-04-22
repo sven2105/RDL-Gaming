@@ -23,17 +23,15 @@ Entwickelt als Einzeldatei-HTML-App – kein Build-Prozess, kein Backend, keine 
 
 1. `quiz_app.html` in einem modernen Browser öffnen (Chrome, Firefox, Edge, Safari)
 2. Theme auswählen
-3. Optional: Fragenkatalog als `.json` Datei laden
+3. Fragenkatalog als `.json` Datei laden
 4. Anzahl der Teams und Teamnamen eingeben
 5. Quiz starten
-
-Kein Webserver nötig – die Datei funktioniert direkt als lokale Datei (`file://`).
 
 ---
 
 ## Fragenkatalog (JSON)
 
-Der Fragenkatalog kann über das Admin-Panel (⚙ Einstellungen → Export) als JSON-Datei gesichert und wieder importiert werden.
+Der Fragenkatalog kann über die Einstellungen (⚙ Einstellungen → Export) als JSON-Datei gesichert und wieder importiert werden.
 
 **Struktur:**
 ```json
@@ -64,7 +62,7 @@ Der Fragenkatalog kann über das Admin-Panel (⚙ Einstellungen → Export) als 
 
 ---
 
-## Admin-Panel
+## Einstellungen
 
 Erreichbar über den **⚙ Einstellungen** Button während des Spiels.
 

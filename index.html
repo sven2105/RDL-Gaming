@@ -409,7 +409,7 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
     <div class="tab-panel" id="tab-categories">
       <div class="global-box" style="margin-bottom:18px">
         <h3>📋 Hinweis</h3>
-        <div style="font-size:.78rem;color:var(--silver);line-height:1.5">Änderungen an Namen, Emoji und Farbe werden beim <strong style="color:var(--gold)">Speichern</strong> übernommen. Beim Löschen einer Kategorie werden alle zugehörigen Fragen entfernt. Exportiere vorher das JSON um nichts zu verlieren.</div>
+        <div style="font-size:.78rem;color:var(--silver);line-height:1.5">Änderungen an Namen, Emoji und Farbe werden <strong style="color:var(--gold)">automatisch gespeichert</strong>. Beim Löschen einer Kategorie werden alle zugehörigen Fragen entfernt. Exportiere vorher das JSON um nichts zu verlieren.</div>
       </div>
       <div class="cat-list" id="cat-list"></div>
       <div class="add-cat-box">
@@ -1597,8 +1597,8 @@ function renderQuestionsTab(){
   let structHtml=`
     <h3 style="margin-bottom:14px">🎯 Fragenstruktur pro Kategorie</h3>
     <div style="font-size:.74rem;color:var(--silver);margin-bottom:14px;line-height:1.5">
-      Lege fest, wie viele Fragen jede Kategorie hat und welche Punkte- und Timerwerte gelten.
-      <strong style="color:var(--gold)">Anwenden</strong> übernimmt Änderungen sofort (fehlende Fragen werden leer angelegt, überschüssige gelöscht).
+      Lege fest, wie viele Fragen jede Kategorie hat und welche Punkte- und Timerwerte gelten. 
+Die Änderungen werden <strong style="color:var(--gold)">automatisch gespeichert</strong> (fehlende Fragen werden leer angelegt, überschüssige gelöscht).
     </div>
     <div id="qs-rows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">`;
   S.pts.forEach((pts,pi)=>{

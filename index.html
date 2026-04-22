@@ -415,7 +415,7 @@ input[type="color"]::-webkit-color-swatch{border-radius:4px;border:2px solid rgb
       <div class="add-cat-box">
         <h3>➕ Neue Kategorie</h3>
         <div class="add-cat-inner">
-          <div class="cat-field"><label>Emoji</label><input type="text" id="new-cat-emoji" value="⭐" placeholder="⭐" style="max-width:80px"></div>
+          <div class="cat-field"><label>Emoji</label><input type="text" id="new-cat-emoji" value="" placeholder="" style="max-width:80px"></div>
           <div class="cat-field"><label>Name</label><input type="text" id="new-cat-name" placeholder="Kategoriename"></div>
           <div class="cat-field"><label>Farbe</label><input type="color" id="new-cat-color" value="#2E7D32" class="cat-swatch"></div>
           <button class="cat-add-btn" onclick="addCategory()">+ Hinzufügen</button>
@@ -1818,7 +1818,7 @@ function renderCategoriesTab(){
     row.className='cat-row';
     row.id=`cr-${ci}`;
     row.innerHTML=`
-      <div class="cat-field" style="max-width:70px"><label>Emoji</label><input type="text" id="ce-${ci}" value="${esc(cat.emoji)}" placeholder="⭐" maxlength="4"></div>
+      <div class="cat-field" style="max-width:70px"><label>Emoji</label><input type="text" id="ce-${ci}" value="${esc(cat.emoji)}" placeholder="" maxlength="4"></div>
       <div class="cat-field" style="flex:2"><label>Name</label><input type="text" id="cn-${ci}" value="${esc(cat.name)}" placeholder="Kategoriename"></div>
       <div class="cat-field" style="max-width:80px"><label>Farbe</label><input type="color" id="cc-${ci}" value="${cat.color}" class="cat-swatch" style="width:100%;height:38px;border-radius:8px"></div>
       <button class="cat-del" onclick="deleteCategory(${ci})">🗑 Löschen</button>`;
@@ -1834,7 +1834,7 @@ function saveCategoryEdits(){
     const ne=document.getElementById(`ce-${ci}`);
     const nn=document.getElementById(`cn-${ci}`);
     const nc=document.getElementById(`cc-${ci}`);
-    if(ne) cat.emoji=ne.value||cat.emoji;
+    if(ne) cat.emoji=ne.value;
     if(nn) cat.name=nn.value||cat.name;
     if(nc) cat.color=nc.value||cat.color;
   });
@@ -1851,7 +1851,7 @@ function deleteCategory(ci){
 }
 
 function addCategory(){
-  const emoji=document.getElementById('new-cat-emoji').value||'⭐';
+  const emoji=document.getElementById('new-cat-emoji').value||'';
   const name=document.getElementById('new-cat-name').value.trim();
   const color=document.getElementById('new-cat-color').value||'#2E7D32';
   if(!name){toast('❌ Bitte einen Namen eingeben');return;}
